@@ -218,6 +218,15 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         if result:
             return result
 
+        partner_filter_values = options.get("partner") or []
+        filter_partner_ids = [
+            int(partner.get("id"))
+            for partner in partner_filter_values
+            if partner.get("id") and partner.get("selected")
+        ]
+        if filter_partner_ids:
+            return filter_partner_ids
+
         selected_partner_ids = options.get("selected_partner_ids") or []
         return [int(pid) for pid in selected_partner_ids if pid]
 
