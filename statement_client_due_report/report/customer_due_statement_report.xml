@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_customer_due_statement" model="ir.actions.report">
+        <field name="name">Adeudado del cliente</field>
+        <field name="model">customer.due.statement.wizard</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">statement_client_due_report.customer_due_statement_document</field>
+        <field name="report_file">statement_client_due_report.customer_due_statement_document</field>
+        <field name="binding_model_id" ref="model_customer_due_statement_wizard"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="customer_due_statement_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="wizard">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Adeudado del cliente</h2>
+                        <p>
+                            <strong>Cliente:</strong>
+                            <span t-esc="wizard.partner_id.display_name"/>
+                        </p>
+                        <p t-if="wizard.date_from or wizard.date_to">
+                            <strong>Rango:</strong>
+                            <span t-esc="wizard.date_from or ''"/> - <span t-esc="wizard.date_to or ''"/>
+                        </p>
+
+                        <t t-foreach="grouped_data" t-as="group">
+                            <h3 style="margin-top: 16px;">
+                                Moneda: <span t-esc="group['currency'].name"/>
+                            </h3>
+                            <table class="table table-sm o_main_table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Fecha vencimiento</th>
+                                        <th>Factura fp_consecutive_number</th>
+                                        <th class="text-end">Importe original</th>
+                                        <th class="text-end">Saldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="group['lines']" t-as="line">
+                                        <td><span t-esc="line['invoice_date']"/></td>
+                                        <td><span t-esc="line['invoice_date_due']"/></td>
+                                        <td><span t-esc="line['invoice_name']"/></td>
+                                        <td class="text-end">
+                                            <span t-esc="line['original_amount']" t-options='{"widget": "monetary", "display_currency": group["currency"]}'/>
+                                        </td>
+                                        <td class="text-end">
+                                            <span t-esc="line['balance_amount']" t-options='{"widget": "monetary", "display_currency": group["currency"]}'/>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="4" class="text-end"><strong>Total saldo</strong></td>
+                                        <td class="text-end">
+                                            <strong t-esc="group['total_balance']" t-options='{"widget": "monetary", "display_currency": group["currency"]}'/>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </t>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>
