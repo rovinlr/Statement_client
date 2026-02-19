@@ -18,7 +18,9 @@ class ResPartner(models.Model):
     def _get_statement_report_options(self):
         self.ensure_one()
         report = self._get_statement_report()
-        options = report.get_options(previous_options=None)
+        # account.report.get_options() expects a dict in newer account_reports
+        # versions; passing None raises an AttributeError when it calls .get().
+        options = report.get_options(previous_options={})
         options["partner_ids"] = [self.id]
         options["selected_partner_ids"] = [self.id]
         options["unfold_all"] = True
