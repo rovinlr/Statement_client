@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_report_estado_cuenta_por_cobrar_moneda_original" model="account.report">
+        <field name="name">Estado de cuenta por cobrar (Moneda original)</field>
+        <field name="filter_date_range" eval="True"/>
+        <field name="filter_journals" eval="True"/>
+        <field name="filter_partner" eval="True"/>
+        <field name="filter_unfold_all" eval="True"/>
+        <field name="filter_multi_company">selector</field>
+        <field name="default_opening_date_filter">this_month</field>
+        <field name="load_more_limit" eval="80"/>
+        <field name="column_ids" eval="[(5, 0, 0),
+            (0, 0, {'name': 'Fecha', 'expression_label': 'fecha'}),
+            (0, 0, {'name': 'Fecha vencimiento', 'expression_label': 'fecha_vencimiento'}),
+            (0, 0, {'name': 'Factura', 'expression_label': 'factura'}),
+            (0, 0, {'name': 'Importe original', 'expression_label': 'importe_original', 'figure_type': 'monetary'}),
+            (0, 0, {'name': 'Saldo', 'expression_label': 'saldo', 'figure_type': 'monetary'})]"/>
+        <field name="custom_handler_model_id" ref="model_account_outstanding_original_currency_report_handler"/>
+    </record>
+
+    <record id="action_account_report_estado_cuenta_por_cobrar_moneda_original" model="ir.actions.client">
+        <field name="name">Estado de cuenta por cobrar (Moneda original)</field>
+        <field name="tag">account_report</field>
+        <field name="context" eval="{'report_id': ref('account_report_estado_cuenta_por_cobrar_moneda_original')}"/>
+    </record>
+
+    <menuitem
+        id="menu_account_report_estado_cuenta_por_cobrar_moneda_original"
+        name="Estado de cuenta por cobrar (Moneda original)"
+        parent="account.menu_finance_reports"
+        action="action_account_report_estado_cuenta_por_cobrar_moneda_original"
+        sequence="95"
+        groups="account.group_account_readonly"
+    />
+</odoo>
