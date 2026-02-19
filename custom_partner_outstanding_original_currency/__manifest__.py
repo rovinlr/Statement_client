@@ -5,10 +5,14 @@
     "category": "Accounting/Accounting",
     "license": "LGPL-3",
     "depends": ["base", "account", "account_reports", "mail", "account_followup"],
+    "assets": {
+        "web.report_assets_common": [
+            "custom_partner_outstanding_original_currency/static/src/scss/account_report_original_currency.scss",
+        ],
+    },
     "data": [
         "security/ir.model.access.csv",
         "data/account_report.xml",
-        "views/account_report_templates.xml",
         "views/res_partner_views.xml",
         "views/statement_send_wizard_views.xml",
     ],
