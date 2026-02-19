@@ -24,6 +24,13 @@
     padding-bottom: 8px;
 }
 
+
+.o_account_reports_page .o_account_reports_table th.o_account_report_line_header,
+.o_account_reports_page .o_account_reports_table td.o_account_report_line_name {
+    width: 30%;
+    max-width: 30%;
+}
+
 .o_account_reports_page .o_account_reports_table thead th {
     font-size: 11px;
     letter-spacing: 0.02em;
