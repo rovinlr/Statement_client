@@ -3,6 +3,7 @@ from odoo import fields, models
 
 class ReportCustomerDueStatement(models.AbstractModel):
     _name = "report.statement_client_due_report.customer_due_statement_document"
+    _table = "report_customer_due_statement"
     _description = "Customer Due Statement Report"
 
     def _get_report_values(self, docids, data=None):
