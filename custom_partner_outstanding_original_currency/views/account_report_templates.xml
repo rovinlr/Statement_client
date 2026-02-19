@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-    <template id="assets_account_report_estado_cuenta_por_cobrar_moneda_original" inherit_id="web.report_assets_pdf">
+    <template id="assets_account_report_estado_cuenta_por_cobrar_moneda_original" inherit_id="web.report_assets_common">
         <xpath expr="." position="inside">
             <style>
                 .o_account_reports_page .o_statement_original_currency_partner td {
