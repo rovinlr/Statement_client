@@ -10,11 +10,11 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
     _inherit = "account.report.custom.handler"
     _description = "Outstanding Receivable in Original Currency Report Handler"
 
-    _COLUMN_LABELS_BY_EXPRESSION = {
-        "fecha": _("Fecha"),
-        "fecha_vencimiento": _("Fecha vencimiento"),
-        "importe_original": _("Importe original"),
-        "saldo": _("Saldo"),
+    _COLUMN_LABEL_SOURCES_BY_EXPRESSION = {
+        "fecha": "Fecha",
+        "fecha_vencimiento": "Fecha vencimiento",
+        "importe_original": "Importe original",
+        "saldo": "Saldo",
     }
 
     def _custom_options_initializer(self, report, options, previous_options=None):
@@ -23,15 +23,19 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         self._set_column_headers(options)
 
     def _set_column_headers(self, options):
+        translated_labels = {
+            expression_label: _(label)
+            for expression_label, label in self._COLUMN_LABEL_SOURCES_BY_EXPRESSION.items()
+        }
         ordered_labels = [
-            self._COLUMN_LABELS_BY_EXPRESSION["fecha"],
-            self._COLUMN_LABELS_BY_EXPRESSION["fecha_vencimiento"],
-            self._COLUMN_LABELS_BY_EXPRESSION["importe_original"],
-            self._COLUMN_LABELS_BY_EXPRESSION["saldo"],
+            translated_labels["fecha"],
+            translated_labels["fecha_vencimiento"],
+            translated_labels["importe_original"],
+            translated_labels["saldo"],
         ]
 
         for index, column in enumerate(options.get("columns", [])):
-            label = self._COLUMN_LABELS_BY_EXPRESSION.get(column.get("expression_label"))
+            label = translated_labels.get(column.get("expression_label"))
             if not label and index < len(ordered_labels):
                 label = ordered_labels[index]
             if label:
@@ -39,7 +43,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
 
         for header_row in options.get("column_headers", []):
             for reverse_index, column in enumerate(reversed(header_row)):
-                label = self._COLUMN_LABELS_BY_EXPRESSION.get(column.get("expression_label"))
+                label = translated_labels.get(column.get("expression_label"))
                 if not label and reverse_index < len(ordered_labels):
                     label = ordered_labels[-(reverse_index + 1)]
                 if label:
