@@ -45,7 +45,6 @@ class StatementSendWizard(models.TransientModel):
                 "recipient_ids": [(6, 0, [self.partner_id.id])],
                 "attachment_ids": [(4, attachment.id)],
                 "auto_delete": False,
-                "company_id": self.partner_id.company_id.id,
             }
         )
         mail.send()
