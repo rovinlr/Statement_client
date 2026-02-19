@@ -123,33 +123,35 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         return [(0, line) for line in lines]
 
     def _get_grouped_moves(self, options):
-        query, params = self._get_moves_query(options)
-        self.env.cr.execute(query, params)
+        moves = self.env["account.move"].search(
+            self._get_moves_domain(options),
+            order="partner_id, currency_id, invoice_date, id",
+        )
 
         partner_currency_map = defaultdict(dict)
-        for row in self.env.cr.dictfetchall():
-            partner_key = (row["partner_id"], row["partner_name"] or _("No Partner"))
-            currency_id = row["currency_id"]
+        for move in moves:
+            partner_key = (move.partner_id.id, move.partner_id.name or _("No Partner"))
+            currency_id = move.currency_id.id
             if currency_id not in partner_currency_map[partner_key]:
                 partner_currency_map[partner_key][currency_id] = {
-                    "currency_name": row["currency_name"],
+                    "currency_name": move.currency_id.name,
                     "subtotal_original": 0.0,
                     "subtotal_residual": 0.0,
                     "moves": [],
                 }
 
-            sign = -1 if row["move_type"] == "out_refund" else 1
-            original_amount = sign * row["amount_total"]
-            residual_amount = sign * row["amount_residual"]
+            sign = -1 if move.move_type == "out_refund" else 1
+            original_amount = sign * move.amount_total
+            residual_amount = sign * move.amount_residual
 
             partner_currency_map[partner_key][currency_id]["subtotal_original"] += original_amount
             partner_currency_map[partner_key][currency_id]["subtotal_residual"] += residual_amount
             partner_currency_map[partner_key][currency_id]["moves"].append(
                 {
-                    "id": row["id"],
-                    "invoice_date": row["invoice_date"],
-                    "invoice_date_due": row["invoice_date_due"],
-                    "display_number": row["fp_consecutive_number"] or row["name"],
+                    "id": move.id,
+                    "invoice_date": move.invoice_date,
+                    "invoice_date_due": move.invoice_date_due,
+                    "display_number": move.fp_consecutive_number or move.name,
                     "original_amount": original_amount,
                     "residual_amount": residual_amount,
                 }
@@ -163,7 +165,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
 
         return partner_currency_map
 
-    def _get_moves_query(self, options):
+    def _get_moves_domain(self, options):
         domain = [
             ("move_type", "in", ("out_invoice", "out_refund")),
             ("state", "=", "posted"),
@@ -190,31 +192,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         partner_ids = self._extract_partner_ids(options)
         if partner_ids:
             domain.append(("partner_id", "in", partner_ids))
-
-        query = self.env["account.move"]._where_calc(domain)
-        from_clause, where_clause, where_params = query.get_sql()
-
-        sql = f"""
-            SELECT
-                account_move.id,
-                account_move.name,
-                account_move.fp_consecutive_number,
-                account_move.partner_id,
-                rp.name AS partner_name,
-                account_move.currency_id,
-                rc.name AS currency_name,
-                account_move.move_type,
-                account_move.invoice_date,
-                account_move.invoice_date_due,
-                account_move.amount_total,
-                account_move.amount_residual
-            FROM {from_clause}
-            LEFT JOIN res_partner rp ON rp.id = account_move.partner_id
-            INNER JOIN res_currency rc ON rc.id = account_move.currency_id
-            WHERE {where_clause}
-            ORDER BY rp.name, rc.name, account_move.invoice_date, account_move.id
-        """
-        return sql, where_params
+        return domain
 
     def _extract_partner_ids(self, options):
         partner_ids = options.get("partner_ids") or []
