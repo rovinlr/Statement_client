@@ -8,6 +8,7 @@
     "data": [
         "security/ir.model.access.csv",
         "data/account_report.xml",
+        "views/account_report_templates.xml",
     ],
     "installable": True,
     "application": False,
