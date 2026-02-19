@@ -23,14 +23,25 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         self._set_column_headers(options)
 
     def _set_column_headers(self, options):
-        for column in options.get("columns", []):
+        ordered_labels = [
+            self._COLUMN_LABELS_BY_EXPRESSION["fecha"],
+            self._COLUMN_LABELS_BY_EXPRESSION["fecha_vencimiento"],
+            self._COLUMN_LABELS_BY_EXPRESSION["importe_original"],
+            self._COLUMN_LABELS_BY_EXPRESSION["saldo"],
+        ]
+
+        for index, column in enumerate(options.get("columns", [])):
             label = self._COLUMN_LABELS_BY_EXPRESSION.get(column.get("expression_label"))
+            if not label and index < len(ordered_labels):
+                label = ordered_labels[index]
             if label:
                 column["name"] = label
 
         for header_row in options.get("column_headers", []):
-            for column in header_row:
+            for reverse_index, column in enumerate(reversed(header_row)):
                 label = self._COLUMN_LABELS_BY_EXPRESSION.get(column.get("expression_label"))
+                if not label and reverse_index < len(ordered_labels):
+                    label = ordered_labels[-(reverse_index + 1)]
                 if label:
                     column["name"] = label
 
