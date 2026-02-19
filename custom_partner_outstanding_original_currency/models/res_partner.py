@@ -1,5 +1,6 @@
 import base64
 import json
+from collections.abc import Mapping
 
 from odoo import _, fields, models
 
@@ -97,6 +98,25 @@ class ResPartner(models.Model):
 
         if isinstance(pdf_data, tuple):
             pdf_data = pdf_data[0]
+
+        if isinstance(pdf_data, Mapping):
+            pdf_data = (
+                pdf_data.get("file_content")
+                or pdf_data.get("datas")
+                or pdf_data.get("data")
+                or pdf_data.get("content")
+            )
+
+        if isinstance(pdf_data, str):
+            try:
+                pdf_data = base64.b64decode(pdf_data)
+            except Exception:
+                pdf_data = pdf_data.encode()
+
+        if not isinstance(pdf_data, (bytes, bytearray)):
+            raise TypeError(
+                _("No se pudo generar el PDF del estado de cuenta. Se recibió un tipo de dato no compatible.")
+            )
 
         attachment = self.env["ir.attachment"].create(
             {
