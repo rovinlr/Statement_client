@@ -10,9 +10,29 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
     _inherit = "account.report.custom.handler"
     _description = "Outstanding Receivable in Original Currency Report Handler"
 
+    _COLUMN_LABELS_BY_EXPRESSION = {
+        "fecha": _("Fecha"),
+        "fecha_vencimiento": _("Fecha vencimiento"),
+        "importe_original": _("Importe original"),
+        "saldo": _("Saldo"),
+    }
+
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
         options.setdefault("unfold_all", False)
+        self._set_column_headers(options)
+
+    def _set_column_headers(self, options):
+        for column in options.get("columns", []):
+            label = self._COLUMN_LABELS_BY_EXPRESSION.get(column.get("expression_label"))
+            if label:
+                column["name"] = label
+
+        for header_row in options.get("column_headers", []):
+            for column in header_row:
+                label = self._COLUMN_LABELS_BY_EXPRESSION.get(column.get("expression_label"))
+                if label:
+                    column["name"] = label
 
     def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
         grouped_results = self._get_grouped_moves(options)
