@@ -9,8 +9,7 @@
                 <button name="action_open_customer_due_statement"
                         type="object"
                         string="Adeudado"
-                        class="oe_highlight"
-                        attrs="{'invisible': [('customer_rank', '=', 0)]}"/>
+                        class="btn-primary"/>
             </xpath>
         </field>
     </record>
