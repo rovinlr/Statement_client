@@ -7,8 +7,8 @@ from odoo import _, fields, models
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
-    statement_email = fields.Char(string="Email para estado de cuenta")
-    statement_email_cc = fields.Char(string="CC para estado de cuenta")
+    statement_email = fields.Char(string="Correo para estados de cuenta")
+    statement_email_cc = fields.Char(string="CC para estados de cuenta")
 
     def _get_statement_report(self):
         return self.env.ref(
