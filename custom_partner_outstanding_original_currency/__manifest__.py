@@ -4,7 +4,7 @@
     "version": "19.0.1.0.0",
     "category": "Accounting/Accounting",
     "license": "LGPL-3",
-    "depends": ["account_reports", "mail", "account_followup"],
+    "depends": ["base", "account", "account_reports", "mail", "account_followup"],
     "data": [
         "security/ir.model.access.csv",
         "data/account_report.xml",
