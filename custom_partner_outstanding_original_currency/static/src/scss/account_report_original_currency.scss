@@ -27,6 +27,12 @@
 .o_account_reports_page .o_account_reports_table thead th {
     font-size: 11px;
     letter-spacing: 0.02em;
+    color: #1f2937;
+    opacity: 1;
+}
+
+.o_account_reports_page .o_account_reports_table thead tr:last-child th {
+    font-weight: 700;
 }
 
 .o_account_reports_page .o_account_reports_table td.number,
