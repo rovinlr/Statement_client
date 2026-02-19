@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from odoo import _, fields, models
+from odoo.tools.misc import formatLang
 from odoo.tools import float_is_zero
 
 
@@ -235,7 +236,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
     def _monetary_col(self, report, amount, currency):
         amount = currency.round(amount or 0.0)
         return {
-            "name": report.format_value(amount, figure_type="monetary", currency=currency),
+            "name": formatLang(self.env, amount, currency_obj=currency),
             "no_format": amount,
             "figure_type": "monetary",
             "currency_id": currency.id,
