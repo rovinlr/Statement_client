@@ -86,7 +86,15 @@ class ResPartner(models.Model):
         report = self._get_statement_report().with_company(self.company_id)
         options = self._get_statement_report_options()
 
-        pdf_data = report.get_pdf(options)
+        if hasattr(report, "export_to_pdf"):
+            pdf_data = report.export_to_pdf(options)
+        elif hasattr(report, "get_pdf"):
+            pdf_data = report.get_pdf(options)
+        elif hasattr(report, "_get_pdf"):
+            pdf_data = report._get_pdf(options)
+        else:
+            raise AttributeError(_("El reporte contable no soporta exportación a PDF en esta versión."))
+
         if isinstance(pdf_data, tuple):
             pdf_data = pdf_data[0]
 

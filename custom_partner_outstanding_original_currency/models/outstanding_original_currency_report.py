@@ -83,21 +83,20 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                         {
                             "id": report._get_generic_line_id("account.move", move["id"], parent_line_id=currency_line_id),
                             "parent_id": currency_line_id,
-                            "name": "",
+                            "name": self._fmt_date(move["invoice_date"]),
                             "level": 3,
                             "caret_options": "account.move",
                             "class": "o_statement_original_currency_detail",
                             "columns": [
-                                {"name": self._fmt_date(move["invoice_date"])},
                                 {
                                     "name": self._fmt_date(move["invoice_date_due"])
                                 },
                                 {"name": move["display_number"]},
                                 {
-                                    **self._monetary_col(move["original_amount"], currency),
+                                    **self._monetary_col(report, move["original_amount"], currency),
                                 },
                                 {
-                                    **self._monetary_col(move["residual_amount"], currency),
+                                    **self._monetary_col(report, move["residual_amount"], currency),
                                 },
                             ],
                         }
@@ -107,18 +106,17 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                     {
                         "id": report._get_generic_line_id("res.currency", currency_id, parent_line_id=currency_line_id, markup="subtotal"),
                         "parent_id": currency_line_id,
-                        "name": "",
+                        "name": _("Subtotal"),
                         "level": 3,
                         "class": "o_statement_original_currency_subtotal",
                         "columns": [
                             {"name": ""},
                             {"name": ""},
-                            {"name": _("Subtotal")},
                             {
-                                **self._monetary_col(currency_data["subtotal_original"], currency),
+                                **self._monetary_col(report, currency_data["subtotal_original"], currency),
                             },
                             {
-                                **self._monetary_col(currency_data["subtotal_residual"], currency),
+                                **self._monetary_col(report, currency_data["subtotal_residual"], currency),
                             },
                         ],
                     }
@@ -234,10 +232,10 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         selected_partner_ids = options.get("selected_partner_ids") or []
         return [int(pid) for pid in selected_partner_ids if pid]
 
-    def _monetary_col(self, amount, currency):
+    def _monetary_col(self, report, amount, currency):
         amount = currency.round(amount or 0.0)
         return {
-            "name": amount,
+            "name": report.format_value(amount, figure_type="monetary", currency=currency),
             "no_format": amount,
             "figure_type": "monetary",
             "currency_id": currency.id,
