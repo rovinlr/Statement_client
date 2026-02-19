@@ -218,11 +218,15 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         if result:
             return result
 
-        partner_filter_values = options.get("partner") or []
+        partner_filter_values = options.get("partner")
+        if isinstance(partner_filter_values, dict):
+            partner_filter_values = [partner_filter_values]
+        elif not isinstance(partner_filter_values, (list, tuple)):
+            partner_filter_values = []
         filter_partner_ids = [
             int(partner.get("id"))
             for partner in partner_filter_values
-            if partner.get("id") and partner.get("selected")
+            if isinstance(partner, dict) and partner.get("id") and partner.get("selected")
         ]
         if filter_partner_ids:
             return filter_partner_ids
