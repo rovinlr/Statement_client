@@ -1,5 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="account_report_estado_cuenta_por_cobrar_moneda_original_col_fecha" model="account.report.column">
+        <field name="name">Fecha</field>
+        <field name="expression_label">fecha</field>
+    </record>
+
+    <record id="account_report_estado_cuenta_por_cobrar_moneda_original_col_fecha_vencimiento" model="account.report.column">
+        <field name="name">Fecha vencimiento</field>
+        <field name="expression_label">fecha_vencimiento</field>
+    </record>
+
+    <record id="account_report_estado_cuenta_por_cobrar_moneda_original_col_factura" model="account.report.column">
+        <field name="name">Factura</field>
+        <field name="expression_label">factura</field>
+    </record>
+
+    <record id="account_report_estado_cuenta_por_cobrar_moneda_original_col_importe_original" model="account.report.column">
+        <field name="name">Importe original</field>
+        <field name="expression_label">importe_original</field>
+        <field name="figure_type">monetary</field>
+    </record>
+
+    <record id="account_report_estado_cuenta_por_cobrar_moneda_original_col_saldo" model="account.report.column">
+        <field name="name">Saldo</field>
+        <field name="expression_label">saldo</field>
+        <field name="figure_type">monetary</field>
+    </record>
+
     <record id="account_report_estado_cuenta_por_cobrar_moneda_original" model="account.report">
         <field name="name">Estado de cuenta por cobrar (Moneda original)</field>
         <field name="filter_date_range" eval="True"/>
@@ -9,12 +36,13 @@
         <field name="filter_multi_company">selector</field>
         <field name="default_opening_date_filter">this_month</field>
         <field name="load_more_limit" eval="80"/>
-        <field name="column_ids" eval="[(5, 0, 0),
-            (0, 0, {'name': 'Fecha', 'expression_label': 'fecha'}),
-            (0, 0, {'name': 'Fecha vencimiento', 'expression_label': 'fecha_vencimiento'}),
-            (0, 0, {'name': 'Factura', 'expression_label': 'factura'}),
-            (0, 0, {'name': 'Importe original', 'expression_label': 'importe_original', 'figure_type': 'monetary'}),
-            (0, 0, {'name': 'Saldo', 'expression_label': 'saldo', 'figure_type': 'monetary'})]"/>
+        <field name="column_ids" eval="[(6, 0, [
+            ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_fecha'),
+            ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_fecha_vencimiento'),
+            ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_factura'),
+            ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_importe_original'),
+            ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_saldo')
+        ])]"/>
         <field name="custom_handler_model_id" ref="model_account_outstanding_original_currency_report_handler"/>
     </record>
 

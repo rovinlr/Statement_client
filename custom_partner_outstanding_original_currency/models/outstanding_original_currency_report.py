@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from odoo import _, fields, models
+from odoo.tools import float_is_zero
 
 
 class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
@@ -32,6 +33,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                     "level": 1,
                     "unfoldable": True,
                     "unfolded": bool(partner_is_unfolded),
+                    "class": "o_statement_original_currency_partner",
                     "columns": [
                         {"name": ""},
                         {"name": ""},
@@ -62,6 +64,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                         "level": 2,
                         "unfoldable": True,
                         "unfolded": bool(currency_is_unfolded),
+                        "class": "o_statement_original_currency_currency",
                         "columns": [
                             {"name": ""},
                             {"name": ""},
@@ -83,12 +86,11 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                             "name": "",
                             "level": 3,
                             "caret_options": "account.move",
+                            "class": "o_statement_original_currency_detail",
                             "columns": [
-                                {"name": fields.Date.to_string(move["invoice_date"]) if move["invoice_date"] else ""},
+                                {"name": self._fmt_date(move["invoice_date"])},
                                 {
-                                    "name": fields.Date.to_string(move["invoice_date_due"])
-                                    if move["invoice_date_due"]
-                                    else ""
+                                    "name": self._fmt_date(move["invoice_date_due"])
                                 },
                                 {"name": move["display_number"]},
                                 {
@@ -107,6 +109,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                         "parent_id": currency_line_id,
                         "name": "",
                         "level": 3,
+                        "class": "o_statement_original_currency_subtotal",
                         "columns": [
                             {"name": ""},
                             {"name": ""},
@@ -131,11 +134,16 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
 
         partner_currency_map = defaultdict(dict)
         for move in moves:
+            currency = move.currency_id
+            residual_amount = move.amount_residual
+            if float_is_zero(residual_amount, precision_rounding=currency.rounding):
+                continue
+
             partner_key = (move.partner_id.id, move.partner_id.name or _("No Partner"))
-            currency_id = move.currency_id.id
+            currency_id = currency.id
             if currency_id not in partner_currency_map[partner_key]:
                 partner_currency_map[partner_key][currency_id] = {
-                    "currency_name": move.currency_id.name,
+                    "currency_name": currency.name,
                     "subtotal_original": 0.0,
                     "subtotal_residual": 0.0,
                     "moves": [],
@@ -143,7 +151,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
 
             sign = -1 if move.move_type == "out_refund" else 1
             original_amount = sign * move.amount_total
-            residual_amount = sign * move.amount_residual
+            residual_amount = sign * residual_amount
 
             partner_currency_map[partner_key][currency_id]["subtotal_original"] += original_amount
             partner_currency_map[partner_key][currency_id]["subtotal_residual"] += residual_amount
@@ -214,6 +222,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         return [int(pid) for pid in selected_partner_ids if pid]
 
     def _monetary_col(self, amount, currency):
+        amount = currency.round(amount or 0.0)
         return {
             "name": amount,
             "no_format": amount,
@@ -221,3 +230,6 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
             "currency_id": currency.id,
             "class": "number",
         }
+
+    def _fmt_date(self, date_value):
+        return date_value.strftime("%d/%m/%Y") if date_value else ""
