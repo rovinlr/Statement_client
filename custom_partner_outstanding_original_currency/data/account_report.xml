@@ -37,9 +37,9 @@
         <field name="default_opening_date_filter">this_month</field>
         <field name="load_more_limit" eval="80"/>
         <field name="column_ids" eval="[(6, 0, [
+            ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_factura'),
             ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_fecha'),
             ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_fecha_vencimiento'),
-            ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_factura'),
             ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_importe_original'),
             ref('account_report_estado_cuenta_por_cobrar_moneda_original_col_saldo')
         ])]"/>

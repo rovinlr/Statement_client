@@ -84,15 +84,18 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                         {
                             "id": report._get_generic_line_id("account.move", move["id"], parent_line_id=currency_line_id),
                             "parent_id": currency_line_id,
-                            "name": self._fmt_date(move["invoice_date"]),
+                            "name": "",
                             "level": 3,
                             "caret_options": "account.move",
                             "class": "o_statement_original_currency_detail",
                             "columns": [
+                                {"name": move["display_number"]},
+                                {
+                                    "name": self._fmt_date(move["invoice_date"])
+                                },
                                 {
                                     "name": self._fmt_date(move["invoice_date_due"])
                                 },
-                                {"name": move["display_number"]},
                                 {
                                     **self._monetary_col(report, move["original_amount"], currency),
                                 },
@@ -111,6 +114,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                         "level": 3,
                         "class": "o_statement_original_currency_subtotal",
                         "columns": [
+                            {"name": ""},
                             {"name": ""},
                             {"name": ""},
                             {
