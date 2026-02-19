@@ -33,3 +33,21 @@
 .o_account_reports_page .o_account_reports_table th.number {
     text-align: right;
 }
+
+.o_account_reports_page .o_statement_original_currency_detail .o_account_report_line_name,
+.o_account_reports_page .o_statement_original_currency_subtotal .o_account_report_line_name {
+    width: 1%;
+    white-space: nowrap;
+}
+
+@media print {
+    .o_account_reports_page .o_account_reports_table {
+        width: 100%;
+    }
+
+    .o_account_reports_page .o_statement_original_currency_detail td,
+    .o_account_reports_page .o_statement_original_currency_subtotal td {
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+}
