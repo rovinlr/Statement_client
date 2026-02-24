@@ -53,9 +53,11 @@ class ResPartner(models.Model):
 
     def _get_statement_target_emails(self):
         self.ensure_one()
+        email_to = (self.statement_email or "").strip()
+        email_cc = (self.statement_email_cc or "").strip()
         return {
-            "email_to": self.statement_email or self.email,
-            "email_cc": self.statement_email_cc,
+            "email_to": email_to,
+            "email_cc": email_cc,
         }
 
     def _get_followup_mail_recipients(self):
