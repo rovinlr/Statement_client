@@ -9,6 +9,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
     _name = "account.outstanding.original.currency.report.handler"
     _inherit = "account.report.custom.handler"
     _description = "Outstanding Receivable in Original Currency Report Handler"
+    _COLUMN_EXPRESSIONS = ("fecha", "fecha_vencimiento", "importe_original", "saldo")
 
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
@@ -98,12 +99,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                     "unfoldable": True,
                     "unfolded": bool(partner_is_unfolded),
                     "class": "o_statement_original_currency_partner",
-                    "columns": [
-                        {"name": ""},
-                        {"name": ""},
-                        {"name": ""},
-                        {"name": ""},
-                    ],
+                    "columns": self._empty_columns(),
                 }
             )
 
@@ -128,12 +124,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                         "unfoldable": True,
                         "unfolded": bool(currency_is_unfolded),
                         "class": "o_statement_original_currency_currency",
-                        "columns": [
-                            {"name": ""},
-                            {"name": ""},
-                            {"name": ""},
-                            {"name": ""},
-                        ],
+                        "columns": self._empty_columns(),
                     }
                 )
 
@@ -151,15 +142,19 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                             "class": "o_statement_original_currency_detail",
                             "columns": [
                                 {
-                                    "name": self._fmt_date(move["invoice_date"])
+                                    "name": self._fmt_date(move["invoice_date"]),
+                                    "expression_label": "fecha",
                                 },
                                 {
-                                    "name": self._fmt_date(move["invoice_date_due"])
+                                    "name": self._fmt_date(move["invoice_date_due"]),
+                                    "expression_label": "fecha_vencimiento",
                                 },
                                 {
+                                    "expression_label": "importe_original",
                                     **self._monetary_col(report, move["original_amount"], currency),
                                 },
                                 {
+                                    "expression_label": "saldo",
                                     **self._monetary_col(report, move["residual_amount"], currency),
                                 },
                             ],
@@ -174,12 +169,14 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                         "level": 3,
                         "class": "o_statement_original_currency_subtotal",
                         "columns": [
-                            {"name": ""},
-                            {"name": ""},
+                            {"name": "", "expression_label": "fecha"},
+                            {"name": "", "expression_label": "fecha_vencimiento"},
                             {
+                                "expression_label": "importe_original",
                                 **self._monetary_col(report, currency_data["subtotal_original"], currency),
                             },
                             {
+                                "expression_label": "saldo",
                                 **self._monetary_col(report, currency_data["subtotal_residual"], currency),
                             },
                         ],
@@ -187,6 +184,13 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                 )
 
         return [(0, line) for line in lines]
+
+    def _empty_columns(self):
+        return [{"name": "", "expression_label": expression} for expression in self._COLUMN_EXPRESSIONS]
+
+    def _report_custom_engine_outstanding_original_currency(self, *args, **kwargs):
+        """Placeholder to expose editable expression rows in report configuration."""
+        return {}
 
     def _get_grouped_moves(self, options):
         moves = self.env["account.move"].search(
