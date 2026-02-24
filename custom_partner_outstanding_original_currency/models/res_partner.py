@@ -24,6 +24,8 @@ class ResPartner(models.Model):
         options = report.get_options(previous_options={})
         partner_id = str(self.id)
         options["partner_ids"] = [partner_id]
+        # account_reports PDF filter template joins selected values as strings.
+        # Keeping ids as strings avoids `TypeError: expected str instance, int found`.
         options["selected_partner_ids"] = [partner_id]
         options["partner"] = [{"id": self.id, "name": self.display_name, "selected": True}]
         options["unfold_all"] = True
