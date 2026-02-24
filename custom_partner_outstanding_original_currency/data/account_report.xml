@@ -52,38 +52,6 @@
         <field name="groupby">partner_id,id</field>
     </record>
 
-    <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_fecha" model="account.report.expression">
-        <field name="label">fecha</field>
-        <field name="engine">aggregation</field>
-        <field name="formula">0</field>
-        <field name="subformula">sum</field>
-        <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
-    </record>
-
-    <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_fecha_vencimiento" model="account.report.expression">
-        <field name="label">fecha_vencimiento</field>
-        <field name="engine">aggregation</field>
-        <field name="formula">0</field>
-        <field name="subformula">sum</field>
-        <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
-    </record>
-
-    <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_importe_original" model="account.report.expression">
-        <field name="label">importe_original</field>
-        <field name="engine">aggregation</field>
-        <field name="formula">0</field>
-        <field name="subformula">sum</field>
-        <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
-    </record>
-
-    <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_saldo" model="account.report.expression">
-        <field name="label">saldo</field>
-        <field name="engine">aggregation</field>
-        <field name="formula">0</field>
-        <field name="subformula">sum</field>
-        <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
-    </record>
-
     <record id="action_account_report_estado_cuenta_por_cobrar_moneda_original" model="ir.actions.client">
         <field name="name">Outstanding balance statement (Original currency)</field>
         <field name="tag">account_report</field>
