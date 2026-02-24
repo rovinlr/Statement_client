@@ -57,4 +57,24 @@ class StatementSendWizard(models.TransientModel):
             }
         )
         mail.send()
+        chatter_body = _(
+            """
+            <p>Se envió un estado de cuenta por correo electrónico.</p>
+            <ul>
+                <li><strong>Para:</strong> %(email_to)s</li>
+                <li><strong>CC:</strong> %(email_cc)s</li>
+                <li><strong>Asunto:</strong> %(subject)s</li>
+            </ul>
+            """
+        ) % {
+            "email_to": targets["email_to"] or "-",
+            "email_cc": targets["email_cc"] or "-",
+            "subject": self.subject,
+        }
+        self.partner_id.message_post(
+            body=chatter_body,
+            attachment_ids=[attachment.id],
+            message_type="comment",
+            subtype_xmlid="mail.mt_note",
+        )
         return {"type": "ir.actions.act_window_close"}
