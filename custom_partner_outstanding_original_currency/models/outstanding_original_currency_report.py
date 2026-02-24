@@ -18,24 +18,44 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
 
     def _sync_column_labels(self, report, options):
         """Keep Odoo's header metadata intact and only fill visible labels."""
-        column_labels = [column.name for column in report.column_ids.sorted("sequence")]
-        if not column_labels:
+        ordered_columns = report.column_ids.sorted("sequence")
+        if not ordered_columns:
             return
 
-        for index, label in enumerate(column_labels):
-            if index < len(options.get("columns", [])):
-                options["columns"][index]["name"] = label
+        labels_by_expression = {
+            column.expression_label: column.name
+            for column in ordered_columns
+            if column.expression_label
+        }
+        ordered_labels = [column.name for column in ordered_columns]
+
+        for index, column in enumerate(options.get("columns", [])):
+            label = labels_by_expression.get(column.get("expression_label"))
+            if not label and index < len(ordered_labels):
+                label = ordered_labels[index]
+            if label:
+                column["name"] = label
 
         column_headers = options.get("column_headers") or []
-        if not column_headers:
+        for row in column_headers:
+            for cell in row:
+                label = labels_by_expression.get(cell.get("expression_label"))
+                if label:
+                    cell["name"] = label
+
+        # Some Odoo 19 builds provide leaf header cells without expression_label.
+        # Fill only the row that looks like the leaf row (enough cells for all columns)
+        # so we don't overwrite grouped headers (e.g. "feb 2026").
+        candidate_rows = [row for row in column_headers if len(row) >= len(ordered_labels)]
+        if not candidate_rows:
             return
 
-        last_header_row = column_headers[-1]
-        start_index = max(len(last_header_row) - len(column_labels), 0)
-        for index, label in enumerate(column_labels):
+        leaf_row = max(candidate_rows, key=len)
+        start_index = len(leaf_row) - len(ordered_labels)
+        for index, label in enumerate(ordered_labels):
             header_index = start_index + index
-            if header_index < len(last_header_row):
-                last_header_row[header_index]["name"] = label
+            if not leaf_row[header_index].get("name"):
+                leaf_row[header_index]["name"] = label
 
     def _apply_context_partner_filter(self, options):
         context = self.env.context
