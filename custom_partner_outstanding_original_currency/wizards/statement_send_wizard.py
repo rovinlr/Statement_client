@@ -24,9 +24,9 @@ class StatementSendWizard(models.TransientModel):
                 "body",
                 _(
                     """
-                    <p>Estimado/a %(partner)s,</p>
-                    <p>Adjuntamos su estado de cuenta por cobrar en moneda original.</p>
-                    <p>Saludos.</p>
+                    <p>Dear Sir or Madam, %(partner)s,</p>
+                    <p>Please find attached your account statement. If you have any questions, please do not hesitate to contact us.</p>
+                    <p>Best regards.</p>
                     """
                 )
                 % {"partner": partner.name},
