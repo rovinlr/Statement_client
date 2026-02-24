@@ -27,7 +27,7 @@
     </record>
 
     <record id="account_report_estado_cuenta_por_cobrar_moneda_original" model="account.report">
-        <field name="name">Estado de cuenta por cobrar (Moneda original)</field>
+        <field name="name">Outstanding balance statement (Original currency)</field>
         <field name="filter_date_range" eval="True"/>
         <field name="filter_journals" eval="True"/>
         <field name="filter_partner" eval="True"/>
@@ -45,14 +45,14 @@
     </record>
 
     <record id="action_account_report_estado_cuenta_por_cobrar_moneda_original" model="ir.actions.client">
-        <field name="name">Estado de cuenta por cobrar (Moneda original)</field>
+        <field name="name">Outstanding balance statement (Original currency)</field>
         <field name="tag">account_report</field>
         <field name="context" eval="{'report_id': ref('account_report_estado_cuenta_por_cobrar_moneda_original')}"/>
     </record>
 
     <menuitem
         id="menu_account_report_estado_cuenta_por_cobrar_moneda_original"
-        name="Estado de cuenta por cobrar (Moneda original)"
+        name="Outstanding balance statement (Original currency)"
         parent="account.menu_finance_reports"
         action="action_account_report_estado_cuenta_por_cobrar_moneda_original"
         sequence="95"

@@ -24,19 +24,13 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         self._set_column_headers(options)
 
     def _apply_context_partner_filter(self, options):
-        if self._extract_partner_ids(options):
-            return
-
         context = self.env.context
-        context_partner_ids = context.get("default_partner_ids") or []
+        context_partner_ids = context.get("statement_partner_ids") or context.get("default_partner_ids") or []
         if isinstance(context_partner_ids, int):
             context_partner_ids = [context_partner_ids]
 
         if not context_partner_ids and context.get("active_model") == "res.partner" and context.get("active_id"):
             context_partner_ids = [context["active_id"]]
-
-        if not context_partner_ids:
-            return
 
         partner_ids = [int(pid) for pid in context_partner_ids if pid]
         if not partner_ids:
@@ -66,15 +60,23 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
             if label:
                 column["name"] = label
 
-        for header_row in options.get("column_headers", []):
+        column_headers = options.get("column_headers", [])
+        for header_row in column_headers:
             for index, column in enumerate(header_row):
                 label = translated_labels.get(column.get("expression_label"))
                 if label:
                     column["name"] = label
 
-            if len(header_row) >= len(ordered_labels):
+        if not column_headers:
+            options["column_headers"] = [[{"name": ""}, *({"name": label} for label in ordered_labels)]]
+            return
+
+        last_row = column_headers[-1]
+        if len(last_row) >= len(ordered_labels):
+            trailing_columns = last_row[-len(ordered_labels):]
+            if any(not col.get("name") for col in trailing_columns):
                 for index, label in enumerate(ordered_labels):
-                    header_row[-len(ordered_labels) + index]["name"] = label
+                    trailing_columns[index]["name"] = label
 
     def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
         grouped_results = self._get_grouped_moves(options)

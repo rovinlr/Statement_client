@@ -40,6 +40,10 @@ class ResPartner(models.Model):
                 "report_id": report.id,
                 "options": json.dumps(options),
                 "unfold_all": True,
+                "active_model": "res.partner",
+                "active_id": self.id,
+                "default_partner_ids": [self.id],
+                "statement_partner_ids": [self.id],
             },
         }
 
