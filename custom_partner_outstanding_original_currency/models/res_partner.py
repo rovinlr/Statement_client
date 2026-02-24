@@ -24,6 +24,7 @@ class ResPartner(models.Model):
         options = report.get_options(previous_options={})
         options["partner_ids"] = [self.id]
         options["selected_partner_ids"] = [self.id]
+        options["partner"] = [{"id": self.id, "name": self.display_name, "selected": True}]
         options["unfold_all"] = True
         return options
 
