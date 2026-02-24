@@ -10,18 +10,52 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
     _inherit = "account.report.custom.handler"
     _description = "Outstanding Receivable in Original Currency Report Handler"
 
-    _COLUMN_LABEL_SOURCES_BY_EXPRESSION = {
-        "fecha": "Date",
-        "fecha_vencimiento": "Due Date",
-        "importe_original": "Original Amount",
-        "saldo": "Balance",
-    }
-
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
         self._apply_context_partner_filter(options)
         options.setdefault("unfold_all", False)
-        self._set_column_headers(options)
+        self._sync_column_labels(report, options)
+
+    def _sync_column_labels(self, report, options):
+        """Keep Odoo's header metadata intact and only fill visible labels."""
+        ordered_columns = report.column_ids.sorted("sequence")
+        if not ordered_columns:
+            return
+
+        labels_by_expression = {
+            column.expression_label: column.name
+            for column in ordered_columns
+            if column.expression_label
+        }
+        ordered_labels = [column.name for column in ordered_columns]
+
+        for index, column in enumerate(options.get("columns", [])):
+            label = labels_by_expression.get(column.get("expression_label"))
+            if not label and index < len(ordered_labels):
+                label = ordered_labels[index]
+            if label:
+                column["name"] = label
+
+        column_headers = options.get("column_headers") or []
+        for row in column_headers:
+            for cell in row:
+                label = labels_by_expression.get(cell.get("expression_label"))
+                if label:
+                    cell["name"] = label
+
+        # Some Odoo 19 builds provide leaf header cells without expression_label.
+        # Fill only the row that looks like the leaf row (enough cells for all columns)
+        # so we don't overwrite grouped headers (e.g. "feb 2026").
+        candidate_rows = [row for row in column_headers if len(row) >= len(ordered_labels)]
+        if not candidate_rows:
+            return
+
+        leaf_row = max(candidate_rows, key=len)
+        start_index = len(leaf_row) - len(ordered_labels)
+        for index, label in enumerate(ordered_labels):
+            header_index = start_index + index
+            if not leaf_row[header_index].get("name"):
+                leaf_row[header_index]["name"] = label
 
     def _apply_context_partner_filter(self, options):
         context = self.env.context
@@ -41,43 +75,6 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         # Keep the partner filter for querying, but avoid exposing internal IDs in the PDF header.
         options["selected_partner_ids"] = []
         options["partner"] = [{"id": partner.id, "name": partner.display_name, "selected": True} for partner in partners]
-
-    def _set_column_headers(self, options):
-        translated_labels = {
-            expression_label: _(label)
-            for expression_label, label in self._COLUMN_LABEL_SOURCES_BY_EXPRESSION.items()
-        }
-        ordered_labels = [
-            translated_labels["fecha"],
-            translated_labels["fecha_vencimiento"],
-            translated_labels["importe_original"],
-            translated_labels["saldo"],
-        ]
-
-        for index, column in enumerate(options.get("columns", [])):
-            label = translated_labels.get(column.get("expression_label"))
-            if not label and index < len(ordered_labels):
-                label = ordered_labels[index]
-            if label:
-                column["name"] = label
-
-        column_headers = options.get("column_headers", [])
-        for header_row in column_headers:
-            for index, column in enumerate(header_row):
-                label = translated_labels.get(column.get("expression_label"))
-                if label:
-                    column["name"] = label
-
-        if not column_headers:
-            options["column_headers"] = [[{"name": ""}, *({"name": label} for label in ordered_labels)]]
-            return
-
-        last_row = column_headers[-1]
-        if len(last_row) >= len(ordered_labels):
-            trailing_columns = last_row[-len(ordered_labels):]
-            if any(not col.get("name") for col in trailing_columns):
-                for index, label in enumerate(ordered_labels):
-                    trailing_columns[index]["name"] = label
 
     def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
         grouped_results = self._get_grouped_moves(options)
