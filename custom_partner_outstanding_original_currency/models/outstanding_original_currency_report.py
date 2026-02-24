@@ -42,12 +42,14 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                 column["name"] = label
 
         for header_row in options.get("column_headers", []):
-            for reverse_index, column in enumerate(reversed(header_row)):
+            for index, column in enumerate(header_row):
                 label = translated_labels.get(column.get("expression_label"))
-                if not label and reverse_index < len(ordered_labels):
-                    label = ordered_labels[-(reverse_index + 1)]
                 if label:
                     column["name"] = label
+
+            if len(header_row) >= len(ordered_labels):
+                for index, label in enumerate(ordered_labels):
+                    header_row[-len(ordered_labels) + index]["name"] = label
 
     def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
         grouped_results = self._get_grouped_moves(options)
