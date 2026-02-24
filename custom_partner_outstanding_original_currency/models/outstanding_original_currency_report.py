@@ -44,15 +44,16 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                     cell["name"] = label
 
         # Some Odoo 19 builds provide leaf header cells without expression_label.
-        # Fill only the row that looks like the leaf row (enough cells for all columns)
-        # so we don't overwrite grouped headers (e.g. "feb 2026").
-        candidate_rows = [row for row in column_headers if len(row) >= len(ordered_labels)]
-        if not candidate_rows:
+        # The leaf row is the last header row, but it can include fewer cells than
+        # report columns when column groups are active.
+        if not column_headers:
             return
 
-        leaf_row = max(candidate_rows, key=len)
-        start_index = len(leaf_row) - len(ordered_labels)
-        for index, label in enumerate(ordered_labels):
+        leaf_row = column_headers[-1]
+        labels_to_apply = ordered_labels[-len(leaf_row) :]
+        start_index = len(leaf_row) - len(labels_to_apply)
+
+        for index, label in enumerate(labels_to_apply):
             header_index = start_index + index
             if not leaf_row[header_index].get("name"):
                 leaf_row[header_index]["name"] = label
