@@ -188,6 +188,10 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
     def _empty_columns(self):
         return [{"name": "", "expression_label": expression} for expression in self._COLUMN_EXPRESSIONS]
 
+    def _report_custom_engine_outstanding_original_currency(self, *args, **kwargs):
+        """Placeholder to expose editable expression rows in report configuration."""
+        return {}
+
     def _get_grouped_moves(self, options):
         moves = self.env["account.move"].search(
             self._get_moves_domain(options),
