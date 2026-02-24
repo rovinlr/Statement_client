@@ -57,7 +57,7 @@
         <field name="engine">custom</field>
         <field name="formula">_report_custom_engine_outstanding_original_currency</field>
         <field name="subformula">fecha</field>
-        <field name="line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
+        <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
     </record>
 
     <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_fecha_vencimiento" model="account.report.expression">
@@ -65,7 +65,7 @@
         <field name="engine">custom</field>
         <field name="formula">_report_custom_engine_outstanding_original_currency</field>
         <field name="subformula">fecha_vencimiento</field>
-        <field name="line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
+        <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
     </record>
 
     <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_importe_original" model="account.report.expression">
@@ -73,7 +73,7 @@
         <field name="engine">custom</field>
         <field name="formula">_report_custom_engine_outstanding_original_currency</field>
         <field name="subformula">importe_original</field>
-        <field name="line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
+        <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
     </record>
 
     <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_saldo" model="account.report.expression">
@@ -81,7 +81,7 @@
         <field name="engine">custom</field>
         <field name="formula">_report_custom_engine_outstanding_original_currency</field>
         <field name="subformula">saldo</field>
-        <field name="line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
+        <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
     </record>
 
     <record id="action_account_report_estado_cuenta_por_cobrar_moneda_original" model="ir.actions.client">
