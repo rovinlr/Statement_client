@@ -14,6 +14,28 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
         self._apply_context_partner_filter(options)
         options.setdefault("unfold_all", False)
+        self._sync_column_labels(report, options)
+
+    def _sync_column_labels(self, report, options):
+        """Keep Odoo's header metadata intact and only fill visible labels."""
+        column_labels = [column.name for column in report.column_ids.sorted("sequence")]
+        if not column_labels:
+            return
+
+        for index, label in enumerate(column_labels):
+            if index < len(options.get("columns", [])):
+                options["columns"][index]["name"] = label
+
+        column_headers = options.get("column_headers") or []
+        if not column_headers:
+            return
+
+        last_header_row = column_headers[-1]
+        start_index = max(len(last_header_row) - len(column_labels), 0)
+        for index, label in enumerate(column_labels):
+            header_index = start_index + index
+            if header_index < len(last_header_row):
+                last_header_row[header_index]["name"] = label
 
     def _apply_context_partner_filter(self, options):
         context = self.env.context
