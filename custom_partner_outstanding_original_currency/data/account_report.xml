@@ -54,33 +54,33 @@
 
     <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_fecha" model="account.report.expression">
         <field name="label">fecha</field>
-        <field name="engine">custom</field>
-        <field name="formula">_report_custom_engine_outstanding_original_currency</field>
-        <field name="subformula">fecha</field>
+        <field name="engine">aggregation</field>
+        <field name="formula">0</field>
+        <field name="subformula">sum</field>
         <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
     </record>
 
     <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_fecha_vencimiento" model="account.report.expression">
         <field name="label">fecha_vencimiento</field>
-        <field name="engine">custom</field>
-        <field name="formula">_report_custom_engine_outstanding_original_currency</field>
-        <field name="subformula">fecha_vencimiento</field>
+        <field name="engine">aggregation</field>
+        <field name="formula">0</field>
+        <field name="subformula">sum</field>
         <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
     </record>
 
     <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_importe_original" model="account.report.expression">
         <field name="label">importe_original</field>
-        <field name="engine">custom</field>
-        <field name="formula">_report_custom_engine_outstanding_original_currency</field>
-        <field name="subformula">importe_original</field>
+        <field name="engine">aggregation</field>
+        <field name="formula">0</field>
+        <field name="subformula">sum</field>
         <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
     </record>
 
     <record id="account_report_estado_cuenta_por_cobrar_moneda_original_expr_saldo" model="account.report.expression">
         <field name="label">saldo</field>
-        <field name="engine">custom</field>
-        <field name="formula">_report_custom_engine_outstanding_original_currency</field>
-        <field name="subformula">saldo</field>
+        <field name="engine">aggregation</field>
+        <field name="formula">0</field>
+        <field name="subformula">sum</field>
         <field name="report_line_id" ref="account_report_estado_cuenta_por_cobrar_moneda_original_line_base"/>
     </record>
 
