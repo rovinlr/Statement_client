@@ -22,8 +22,9 @@ class ResPartner(models.Model):
         # account.report.get_options() expects a dict in newer account_reports
         # versions; passing None raises an AttributeError when it calls .get().
         options = report.get_options(previous_options={})
-        options["partner_ids"] = [self.id]
-        options["selected_partner_ids"] = [self.id]
+        partner_id = str(self.id)
+        options["partner_ids"] = [partner_id]
+        options["selected_partner_ids"] = [partner_id]
         options["partner"] = [{"id": self.id, "name": self.display_name, "selected": True}]
         options["unfold_all"] = True
         return options
