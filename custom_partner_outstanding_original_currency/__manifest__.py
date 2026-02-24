@@ -4,6 +4,7 @@
     "version": "19.0.1.0.0",
     "category": "Accounting/Accounting",
     "license": "LGPL-3",
+    "author": "FenixCR Solutions",
     "depends": ["base", "account", "account_reports", "mail", "account_followup"],
     "assets": {
         "web.report_assets_common": [
