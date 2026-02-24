@@ -38,7 +38,8 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
 
         partners = self.env["res.partner"].browse(partner_ids)
         options["partner_ids"] = partner_ids
-        options["selected_partner_ids"] = partner_ids
+        # account_reports PDF filter template joins selected values as strings.
+        options["selected_partner_ids"] = [str(partner_id) for partner_id in partner_ids]
         options["partner"] = [{"id": partner.id, "name": partner.display_name, "selected": True} for partner in partners]
 
     def _set_column_headers(self, options):
