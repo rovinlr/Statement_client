@@ -1,3 +1,5 @@
+from markupsafe import Markup, escape
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
@@ -57,22 +59,25 @@ class StatementSendWizard(models.TransientModel):
             }
         )
         mail.send()
-        chatter_body = _(
-            """
-            <p>Se envió un estado de cuenta por correo electrónico.</p>
-            <ul>
-                <li><strong>Para:</strong> %(email_to)s</li>
-                <li><strong>CC:</strong> %(email_cc)s</li>
-                <li><strong>Asunto:</strong> %(subject)s</li>
-            </ul>
-            """
-        ) % {
-            "email_to": targets["email_to"] or "-",
-            "email_cc": targets["email_cc"] or "-",
-            "subject": self.subject,
-        }
+        chatter_body = Markup(
+            "<p>%s</p>"
+            "<ul>"
+            "<li><strong>%s</strong> %s</li>"
+            "<li><strong>%s</strong> %s</li>"
+            "<li><strong>%s</strong> %s</li>"
+            "</ul>"
+        ) % (
+            escape(_("Se envió un estado de cuenta por correo electrónico.")),
+            escape(_("Para:")),
+            escape(targets["email_to"] or "-"),
+            escape(_("CC:")),
+            escape(targets["email_cc"] or "-"),
+            escape(_("Asunto:")),
+            escape(self.subject or "-"),
+        )
         self.partner_id.message_post(
             body=chatter_body,
+            body_is_html=True,
             attachment_ids=[attachment.id],
             message_type="comment",
             subtype_xmlid="mail.mt_note",
