@@ -11,16 +11,41 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
     _description = "Outstanding Receivable in Original Currency Report Handler"
 
     _COLUMN_LABEL_SOURCES_BY_EXPRESSION = {
-        "fecha": "Fecha",
-        "fecha_vencimiento": "Fecha vencimiento",
-        "importe_original": "Importe original",
-        "saldo": "Saldo",
+        "fecha": "Date",
+        "fecha_vencimiento": "Due Date",
+        "importe_original": "Original Amount",
+        "saldo": "Balance",
     }
 
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
+        self._apply_context_partner_filter(options)
         options.setdefault("unfold_all", False)
         self._set_column_headers(options)
+
+    def _apply_context_partner_filter(self, options):
+        if self._extract_partner_ids(options):
+            return
+
+        context = self.env.context
+        context_partner_ids = context.get("default_partner_ids") or []
+        if isinstance(context_partner_ids, int):
+            context_partner_ids = [context_partner_ids]
+
+        if not context_partner_ids and context.get("active_model") == "res.partner" and context.get("active_id"):
+            context_partner_ids = [context["active_id"]]
+
+        if not context_partner_ids:
+            return
+
+        partner_ids = [int(pid) for pid in context_partner_ids if pid]
+        if not partner_ids:
+            return
+
+        partners = self.env["res.partner"].browse(partner_ids)
+        options["partner_ids"] = partner_ids
+        options["selected_partner_ids"] = partner_ids
+        options["partner"] = [{"id": partner.id, "name": partner.display_name, "selected": True} for partner in partners]
 
     def _set_column_headers(self, options):
         translated_labels = {
