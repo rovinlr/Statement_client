@@ -1,3 +1,4 @@
+import base64
 import logging
 
 from odoo import models
@@ -39,3 +40,76 @@ class PosOrder(models.Model):
             )
 
         return super()._validahacienda_pos(max_orders=max_orders, no_partner=no_partner)
+
+    def _pos_ticket_pdf_binary_fields(self):
+        """Known binary field candidates that can contain a ticket PDF.
+
+        Returns tuples ``(data_field, filename_field_or_false)`` and only keeps
+        fields available on the current model to stay compatible across modules.
+        """
+        self.ensure_one()
+        candidates = [
+            ("pdf_file", "pdf_filename"),
+            ("ticket_pdf", "ticket_pdf_filename"),
+            ("comprobante_pdf", "comprobante_pdf_filename"),
+        ]
+        return [
+            (data_field, filename_field)
+            for data_field, filename_field in candidates
+            if data_field in self._fields
+        ]
+
+    def _get_or_create_pos_ticket_pdf_attachment(self):
+        """Return an ``ir.attachment`` with the POS ticket PDF for this order.
+
+        The method first reuses existing PDF attachments on ``pos.order`` to
+        avoid duplicates. If none exists, it tries well-known binary field
+        candidates created by CR electronic invoicing modules and persists them
+        as a standard attachment for emailing.
+        """
+        self.ensure_one()
+
+        attachment_model = self.env["ir.attachment"]
+        existing_pdf = attachment_model.search(
+            [
+                ("res_model", "=", self._name),
+                ("res_id", "=", self.id),
+                ("mimetype", "=", "application/pdf"),
+            ],
+            limit=1,
+        )
+        if existing_pdf:
+            return existing_pdf
+
+        for data_field, filename_field in self._pos_ticket_pdf_binary_fields():
+            binary_data = self[data_field]
+            if not binary_data:
+                continue
+
+            filename = self[filename_field] if filename_field and filename_field in self._fields else False
+            if not filename:
+                filename = f"{self.name or 'POS'}_ticket.pdf"
+
+            if isinstance(binary_data, bytes):
+                datas = base64.b64encode(binary_data)
+            elif isinstance(binary_data, str):
+                try:
+                    base64.b64decode(binary_data)
+                    datas = binary_data
+                except Exception:  # pragma: no cover - defensive branch for legacy field formats
+                    datas = base64.b64encode(binary_data.encode())
+            else:
+                continue
+
+            return attachment_model.create(
+                {
+                    "name": filename,
+                    "type": "binary",
+                    "datas": datas,
+                    "res_model": self._name,
+                    "res_id": self.id,
+                    "mimetype": "application/pdf",
+                }
+            )
+
+        return False
