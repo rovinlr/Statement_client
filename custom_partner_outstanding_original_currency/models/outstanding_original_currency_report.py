@@ -139,6 +139,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                             "name": move["display_number"],
                             "level": 3,
                             "caret_options": "account.move",
+                            "move_id": (move["id"], move["display_number"]),
                             "class": "o_statement_original_currency_detail",
                             "columns": [
                                 {
