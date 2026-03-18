@@ -14,9 +14,18 @@ class AccountReport(models.Model):
         """
         for line in lines:
             move_id = line.get("move_id")
-            if move_id is False:
+
+            # Odoo expects ``move_id`` as (id, display_name). Anything else can
+            # break base chatter post-processing on mixed report line types.
+            if isinstance(move_id, bool) or move_id in (None, ""):
                 line.pop("move_id", None)
-            elif isinstance(move_id, int):
+                continue
+
+            if isinstance(move_id, int):
                 line["move_id"] = (move_id, line.get("name") or "")
+                continue
+
+            if not isinstance(move_id, (list, tuple)) or not move_id:
+                line.pop("move_id", None)
 
         return super()._postprocess_chatter_for_annotations(lines)
