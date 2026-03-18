@@ -254,13 +254,12 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                 for payment in currency_data["payments"]:
                     lines.append(
                         {
-                            "id": report._get_generic_line_id(
-                                "account.move.line", payment["line_id"], parent_line_id=currency_line_id
-                            ),
+                            "id": report._get_generic_line_id("account.move", payment["move_id"], parent_line_id=currency_line_id),
                             "parent_id": currency_line_id,
                             "name": payment["display_number"],
                             "level": 4,
                             "caret_options": "account.move",
+                            "move_id": (payment["move_id"], payment["display_number"]),
                             "class": "o_statement_original_currency_detail",
                             "columns": [
                                 {
