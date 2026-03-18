@@ -183,7 +183,126 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                     }
                 )
 
+        self._append_pending_payments_section(report, options, lines, unfolded_lines, unfold_all)
         return [(0, line) for line in lines]
+
+    def _append_pending_payments_section(self, report, options, lines, unfolded_lines, unfold_all):
+        grouped_pending_payments = self._get_grouped_pending_payments(options)
+        if not grouped_pending_payments:
+            return
+
+        section_line_id = report._get_generic_line_id("account.move.line", 0, markup="pending_payments_section")
+        lines.append(
+            {
+                "id": section_line_id,
+                "name": _("Pending payments to reconcile"),
+                "level": 1,
+                "class": "o_statement_original_currency_section",
+                "columns": self._empty_columns(),
+            }
+        )
+
+        for partner_key in sorted(grouped_pending_payments.keys(), key=lambda key: (key[1] or "").lower()):
+            partner_id, partner_name = partner_key
+            partner_payload = grouped_pending_payments[partner_key]
+            partner_line_id = report._get_generic_line_id(
+                "res.partner", partner_id, parent_line_id=section_line_id, markup="pending_payment_partner"
+            )
+            partner_is_unfolded = unfold_all or partner_line_id in unfolded_lines
+
+            lines.append(
+                {
+                    "id": partner_line_id,
+                    "parent_id": section_line_id,
+                    "name": partner_name or _("No Partner"),
+                    "level": 2,
+                    "unfoldable": True,
+                    "unfolded": bool(partner_is_unfolded),
+                    "class": "o_statement_original_currency_partner",
+                    "columns": self._empty_columns(),
+                }
+            )
+
+            if not partner_is_unfolded:
+                continue
+
+            for currency_id, currency_data in sorted(
+                partner_payload.items(), key=lambda item: (item[1]["currency_name"] or "")
+            ):
+                currency = self.env["res.currency"].browse(currency_id)
+                currency_line_id = report._get_generic_line_id(
+                    "res.currency", currency_id, parent_line_id=partner_line_id, markup="pending_payment_currency"
+                )
+                currency_is_unfolded = unfold_all or currency_line_id in unfolded_lines
+
+                lines.append(
+                    {
+                        "id": currency_line_id,
+                        "parent_id": partner_line_id,
+                        "name": currency_data["currency_name"],
+                        "level": 3,
+                        "unfoldable": True,
+                        "unfolded": bool(currency_is_unfolded),
+                        "class": "o_statement_original_currency_currency",
+                        "columns": self._empty_columns(),
+                    }
+                )
+
+                if not currency_is_unfolded:
+                    continue
+
+                for payment in currency_data["payments"]:
+                    lines.append(
+                        {
+                            "id": report._get_generic_line_id(
+                                "account.move.line", payment["line_id"], parent_line_id=currency_line_id
+                            ),
+                            "parent_id": currency_line_id,
+                            "name": payment["display_number"],
+                            "level": 4,
+                            "caret_options": "account.move",
+                            "class": "o_statement_original_currency_detail",
+                            "columns": [
+                                {
+                                    "name": self._fmt_date(payment["payment_date"]),
+                                    "expression_label": "fecha",
+                                },
+                                {"name": "", "expression_label": "fecha_vencimiento"},
+                                {
+                                    "expression_label": "importe_original",
+                                    **self._monetary_col(report, payment["payment_amount"], currency),
+                                },
+                                {
+                                    "expression_label": "saldo",
+                                    **self._monetary_col(report, payment["residual_amount"], currency),
+                                },
+                            ],
+                        }
+                    )
+
+                lines.append(
+                    {
+                        "id": report._get_generic_line_id(
+                            "res.currency", currency_id, parent_line_id=currency_line_id, markup="pending_payment_subtotal"
+                        ),
+                        "parent_id": currency_line_id,
+                        "name": _("Subtotal"),
+                        "level": 4,
+                        "class": "o_statement_original_currency_subtotal",
+                        "columns": [
+                            {"name": "", "expression_label": "fecha"},
+                            {"name": "", "expression_label": "fecha_vencimiento"},
+                            {
+                                "expression_label": "importe_original",
+                                **self._monetary_col(report, currency_data["subtotal_original"], currency),
+                            },
+                            {
+                                "expression_label": "saldo",
+                                **self._monetary_col(report, currency_data["subtotal_residual"], currency),
+                            },
+                        ],
+                    }
+                )
 
     def _empty_columns(self):
         return [{"name": "", "expression_label": expression} for expression in self._COLUMN_EXPRESSIONS]
@@ -256,11 +375,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         if date_to:
             domain.append(("invoice_date", "<=", date_to))
 
-        selected_journal_ids = [
-            journal.get("id")
-            for journal in (options.get("journals") or [])
-            if journal.get("id") and journal.get("selected")
-        ]
+        selected_journal_ids = self._get_selected_journal_ids(options)
         if selected_journal_ids:
             domain.append(("journal_id", "in", selected_journal_ids))
 
@@ -268,6 +383,93 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         if partner_ids:
             domain.append(("partner_id", "in", partner_ids))
         return domain
+
+    def _get_grouped_pending_payments(self, options):
+        pending_lines = self.env["account.move.line"].search(
+            self._get_pending_payment_lines_domain(options),
+            order="partner_id, currency_id, date, id",
+        )
+
+        partner_currency_map = defaultdict(dict)
+        for line in pending_lines:
+            currency = line.currency_id or line.company_currency_id
+            residual_amount = self._get_receivable_residual_amount(line, currency)
+            if float_is_zero(residual_amount, precision_rounding=currency.rounding):
+                continue
+
+            payment_amount = self._get_receivable_original_amount(line, currency)
+            if float_is_zero(payment_amount, precision_rounding=currency.rounding):
+                continue
+
+            partner_key = (line.partner_id.id, line.partner_id.name or _("No Partner"))
+            currency_id = currency.id
+            if currency_id not in partner_currency_map[partner_key]:
+                partner_currency_map[partner_key][currency_id] = {
+                    "currency_name": currency.name,
+                    "subtotal_original": 0.0,
+                    "subtotal_residual": 0.0,
+                    "payments": [],
+                }
+
+            partner_currency_map[partner_key][currency_id]["subtotal_original"] += payment_amount
+            partner_currency_map[partner_key][currency_id]["subtotal_residual"] += residual_amount
+            partner_currency_map[partner_key][currency_id]["payments"].append(
+                {
+                    "line_id": line.id,
+                    "move_id": line.move_id.id,
+                    "payment_date": line.date,
+                    "display_number": line.payment_id.name or line.move_id.name,
+                    "payment_amount": payment_amount,
+                    "residual_amount": residual_amount,
+                }
+            )
+
+        return partner_currency_map
+
+    def _get_pending_payment_lines_domain(self, options):
+        domain = [
+            ("account_id.account_type", "=", "asset_receivable"),
+            ("parent_state", "=", "posted"),
+            ("payment_id", "!=", False),
+            ("reconciled", "=", False),
+            ("partner_id", "!=", False),
+            ("company_id", "in", self.env.companies.ids),
+            ("amount_residual", "<", 0.0),
+        ]
+
+        date_options = options.get("date") or {}
+        date_from = date_options.get("date_from")
+        date_to = date_options.get("date_to")
+        if date_from:
+            domain.append(("date", ">=", date_from))
+        if date_to:
+            domain.append(("date", "<=", date_to))
+
+        selected_journal_ids = self._get_selected_journal_ids(options)
+        if selected_journal_ids:
+            domain.append(("journal_id", "in", selected_journal_ids))
+
+        partner_ids = self._extract_partner_ids(options)
+        if partner_ids:
+            domain.append(("partner_id", "in", partner_ids))
+        return domain
+
+    def _get_selected_journal_ids(self, options):
+        return [
+            journal.get("id")
+            for journal in (options.get("journals") or [])
+            if journal.get("id") and journal.get("selected")
+        ]
+
+    def _get_receivable_original_amount(self, line, currency):
+        if line.currency_id:
+            return -line.amount_currency
+        return -line.balance
+
+    def _get_receivable_residual_amount(self, line, currency):
+        if line.currency_id:
+            return -line.amount_residual_currency
+        return -line.amount_residual
 
     def _extract_partner_ids(self, options):
         partner_ids = options.get("partner_ids") or []
