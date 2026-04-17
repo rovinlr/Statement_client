@@ -38,11 +38,8 @@
                                 <div t-if="partner.email" class="small">
                                     <i class="fa fa-envelope"/> <span t-field="partner.email"/>
                                 </div>
-                                <div t-if="partner.phone or partner.mobile" class="small">
-                                    <i class="fa fa-phone"/>
-                                    <span t-field="partner.phone" t-if="partner.phone"/>
-                                    <t t-if="partner.phone and partner.mobile"> / </t>
-                                    <span t-field="partner.mobile" t-if="partner.mobile"/>
+                                <div t-if="partner.phone" class="small">
+                                    <i class="fa fa-phone"/> <span t-field="partner.phone"/>
                                 </div>
                             </div>
                         </div>
