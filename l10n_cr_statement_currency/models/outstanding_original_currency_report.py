@@ -366,14 +366,16 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         return partner_currency_map
 
     def _get_reference_date(self, options):
+        today = fields.Date.context_today(self)
         date_options = options.get("date") or {}
         raw_date_to = date_options.get("date_to")
         if raw_date_to:
             try:
-                return fields.Date.to_date(raw_date_to)
+                parsed = fields.Date.to_date(raw_date_to)
+                return min(parsed, today)
             except (ValueError, TypeError):
                 pass
-        return fields.Date.context_today(self)
+        return today
 
     def _compute_days_overdue(self, due_date, reference_date):
         if not due_date:
