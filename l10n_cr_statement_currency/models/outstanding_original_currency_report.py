@@ -406,6 +406,9 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         }
 
     def _get_moves_domain(self, options):
+        # Outstanding balance is a point-in-time snapshot: include every
+        # posted invoice/refund with residual up to the cutoff date, ignoring
+        # any lower date bound the UI might provide.
         domain = [
             ("move_type", "in", ("out_invoice", "out_refund")),
             ("state", "=", "posted"),
@@ -413,11 +416,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
             ("company_id", "in", self.env.companies.ids),
         ]
 
-        date_options = options.get("date") or {}
-        date_from = date_options.get("date_from")
-        date_to = date_options.get("date_to")
-        if date_from:
-            domain.append(("invoice_date", ">=", date_from))
+        date_to = (options.get("date") or {}).get("date_to")
         if date_to:
             domain.append(("invoice_date", "<=", date_to))
 
@@ -483,11 +482,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
             ("amount_residual", "<", 0.0),
         ]
 
-        date_options = options.get("date") or {}
-        date_from = date_options.get("date_from")
-        date_to = date_options.get("date_to")
-        if date_from:
-            domain.append(("date", ">=", date_from))
+        date_to = (options.get("date") or {}).get("date_to")
         if date_to:
             domain.append(("date", "<=", date_to))
 

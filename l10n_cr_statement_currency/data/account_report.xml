@@ -35,12 +35,12 @@
 
     <record id="statement_report" model="account.report">
         <field name="name">Estado de cuenta (moneda original)</field>
-        <field name="filter_date_range" eval="True"/>
+        <field name="filter_date_range" eval="False"/>
         <field name="filter_journals" eval="True"/>
         <field name="filter_partner" eval="True"/>
         <field name="filter_unfold_all" eval="True"/>
         <field name="filter_multi_company">selector</field>
-        <field name="default_opening_date_filter">this_month</field>
+        <field name="default_opening_date_filter">today</field>
         <field name="load_more_limit" eval="80"/>
         <field name="column_ids" eval="[(6, 0, [
             ref('statement_col_date'),
