@@ -36,4 +36,5 @@ Estado de cuenta por cobrar en moneda original (Odoo 19)
     ],
     "installable": True,
     "application": False,
+    "post_init_hook": "post_init_hook",
 }
