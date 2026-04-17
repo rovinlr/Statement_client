@@ -60,6 +60,19 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                 leaf_row[header_index]["name"] = label
 
     def _apply_context_partner_filter(self, options):
+        """Apply the partner scope from context; never wipe what the user chose.
+
+        Wiping options[partner_ids] when context lacks a partner was breaking
+        PDF and XLSX exports in Odoo 19 Cloudpepper: the export RPC strips
+        our partner-specific context keys, so the handler saw "no partner"
+        and dropped the filter the user had on screen. Always honour the
+        filter already present in options.
+
+        Trade-off: a partner filter set from a previous partner-scoped
+        session is stored in account_reports' previous_options, so the
+        menu entry may still reload that old filter. The user can clear it
+        from the filter chip in the UI when they want a clean global view.
+        """
         context = self.env.context
         context_partner_ids = context.get("statement_partner_ids") or context.get("default_partner_ids") or []
         if isinstance(context_partner_ids, int):
@@ -70,16 +83,6 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
 
         partner_ids = [int(pid) for pid in context_partner_ids if pid]
         if not partner_ids:
-            # Do not touch the filter during PDF/XLSX exports: account_reports
-            # re-runs the initializer with the same options the user saw in
-            # the view, and the export RPC strips our partner context, so
-            # wiping here would drop the filter and print every partner.
-            if context.get("print_mode") or options.get("print_mode"):
-                return
-            # Opened from the menu (no partner scope). account_reports persists
-            # previous_options per user, so a partner filter set from an earlier
-            # partner-scoped open would leak into the menu view. Reset it.
-            self._reset_partner_filter(options)
             return
 
         partners = self.env["res.partner"].browse(partner_ids)
@@ -87,15 +90,6 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         # Keep the partner filter for querying, but avoid exposing internal IDs in the PDF header.
         options["selected_partner_ids"] = []
         options["partner"] = [{"id": partner.id, "name": partner.display_name, "selected": True} for partner in partners]
-
-    def _reset_partner_filter(self, options):
-        options["partner_ids"] = []
-        options["selected_partner_ids"] = []
-        partner_option = options.get("partner")
-        if isinstance(partner_option, list):
-            for entry in partner_option:
-                if isinstance(entry, dict):
-                    entry["selected"] = False
 
     def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
         grouped_results = self._get_grouped_moves(options)
