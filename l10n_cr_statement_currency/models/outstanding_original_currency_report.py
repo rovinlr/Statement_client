@@ -9,7 +9,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
     _name = "account.outstanding.original.currency.report.handler"
     _inherit = "account.report.custom.handler"
     _description = "Outstanding Receivable in Original Currency Report Handler"
-    _COLUMN_EXPRESSIONS = ("fecha", "fecha_vencimiento", "importe_original", "saldo")
+    _COLUMN_EXPRESSIONS = ("fecha", "fecha_vencimiento", "dias_vencidos", "importe_original", "saldo")
 
     def _custom_options_initializer(self, report, options, previous_options=None):
         super()._custom_options_initializer(report, options, previous_options=previous_options)
@@ -150,6 +150,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                                     "name": self._fmt_date(move["invoice_date_due"]),
                                     "expression_label": "fecha_vencimiento",
                                 },
+                                self._days_col(move["days_overdue"]),
                                 {
                                     "expression_label": "importe_original",
                                     **self._monetary_col(report, move["original_amount"], currency),
@@ -172,6 +173,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                         "columns": [
                             {"name": "", "expression_label": "fecha"},
                             {"name": "", "expression_label": "fecha_vencimiento"},
+                            {"name": "", "expression_label": "dias_vencidos"},
                             {
                                 "expression_label": "importe_original",
                                 **self._monetary_col(report, currency_data["subtotal_original"], currency),
@@ -268,6 +270,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                                     "expression_label": "fecha",
                                 },
                                 {"name": "", "expression_label": "fecha_vencimiento"},
+                                {"name": "", "expression_label": "dias_vencidos"},
                                 {
                                     "expression_label": "importe_original",
                                     **self._monetary_col(report, payment["payment_amount"], currency),
@@ -292,6 +295,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                         "columns": [
                             {"name": "", "expression_label": "fecha"},
                             {"name": "", "expression_label": "fecha_vencimiento"},
+                            {"name": "", "expression_label": "dias_vencidos"},
                             {
                                 "expression_label": "importe_original",
                                 **self._monetary_col(report, currency_data["subtotal_original"], currency),
@@ -317,6 +321,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
             order="partner_id, currency_id, invoice_date, id",
         )
 
+        reference_date = self._get_reference_date(options)
         partner_currency_map = defaultdict(dict)
         for move in moves:
             currency = move.currency_id
@@ -348,6 +353,7 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                     "display_number": move.fp_consecutive_number or move.name,
                     "original_amount": original_amount,
                     "residual_amount": residual_amount,
+                    "days_overdue": self._compute_days_overdue(move.invoice_date_due, reference_date),
                 }
             )
 
@@ -358,6 +364,31 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
                 )
 
         return partner_currency_map
+
+    def _get_reference_date(self, options):
+        date_options = options.get("date") or {}
+        raw_date_to = date_options.get("date_to")
+        if raw_date_to:
+            try:
+                return fields.Date.to_date(raw_date_to)
+            except (ValueError, TypeError):
+                pass
+        return fields.Date.context_today(self)
+
+    def _compute_days_overdue(self, due_date, reference_date):
+        if not due_date:
+            return 0
+        delta = (reference_date - due_date).days
+        return delta if delta > 0 else 0
+
+    def _days_col(self, value):
+        return {
+            "name": str(value) if value else "",
+            "no_format": value or 0,
+            "expression_label": "dias_vencidos",
+            "figure_type": "integer",
+            "class": "number",
+        }
 
     def _get_moves_domain(self, options):
         domain = [

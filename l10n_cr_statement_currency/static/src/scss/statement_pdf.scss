@@ -1,0 +1,111 @@
+.o_statement_pdf {
+    font-size: 10.5px;
+    color: #1f2937;
+
+    h2 {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    h4.o_statement_currency_title {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #374151;
+        border-bottom: 2px solid #374151;
+        padding-bottom: 3px;
+        margin-bottom: 6px;
+    }
+
+    h5.o_statement_pending_title {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-top: 8px;
+        margin-bottom: 4px;
+    }
+
+    .o_statement_partner_box {
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+        padding: 8px 10px;
+        background-color: #f9fafb;
+        text-align: left;
+    }
+
+    .o_statement_summary_table {
+        th {
+            border-bottom: 2px solid #374151;
+            color: #374151;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+        td {
+            padding: 4px 6px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+    }
+
+    .o_statement_table {
+        width: 100%;
+        margin-bottom: 4px;
+
+        thead th {
+            background-color: #f3f4f6;
+            color: #111827;
+            font-weight: 700;
+            border-top: 1px solid #d1d5db;
+            border-bottom: 1px solid #9ca3af;
+            padding: 4px 6px;
+        }
+
+        tbody td {
+            padding: 3px 6px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        tr.o_statement_subtotal td {
+            border-top: 1px solid #9ca3af;
+            background-color: #f9fafb;
+        }
+    }
+
+    .o_statement_aging_table {
+        width: auto;
+        float: right;
+
+        thead th {
+            background-color: #eef2f7;
+            color: #1f2937;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 9.5px;
+            letter-spacing: 0.04em;
+            padding: 3px 8px;
+        }
+
+        tbody td {
+            padding: 3px 8px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+    }
+
+    .o_statement_net {
+        clear: both;
+        font-size: 11.5px;
+        border-top: 1px solid #d1d5db;
+        padding-top: 4px;
+    }
+
+    .o_statement_currency_block {
+        page-break-inside: avoid;
+    }
+
+    .o_statement_footer {
+        border-top: 1px solid #d1d5db;
+        padding-top: 8px;
+    }
+}
