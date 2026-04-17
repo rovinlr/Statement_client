@@ -201,106 +201,114 @@
                 </t>
 
                 <t t-foreach="currencies" t-as="cur">
-                    <div class="o_statement_currency_block mt-3">
-                        <h4 class="o_statement_currency_title">
-                            Movimientos en <span t-esc="cur['currency_name']"/>
-                        </h4>
+                    <div class="o_statement_currency_block"
+                         style="page-break-inside: avoid; border: 1px solid #d1d5db; border-radius: 4px; padding: 12px 14px; margin-top: 14px; background-color: #ffffff;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1f2937; padding-bottom: 4px; margin-bottom: 8px;">
+                            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #1f2937;">
+                                Movimientos en <span t-esc="cur['currency_name']"/>
+                            </div>
+                            <div style="font-size: 11px; color: #6b7280;">
+                                <span t-esc="cur['currency_name']"/>
+                            </div>
+                        </div>
 
                         <t t-if="cur['invoices']">
-                            <table class="table table-sm o_statement_table">
+                            <table class="o_statement_table" style="width: 100%; border-collapse: collapse; margin-bottom: 4px;">
                                 <thead>
                                     <tr>
-                                        <th>Documento</th>
-                                        <th>Fecha</th>
-                                        <th>Vence</th>
-                                        <th class="text-end">D&#237;as</th>
-                                        <th class="text-end">Monto original</th>
-                                        <th class="text-end">Saldo</th>
+                                        <th style="background-color: #1f2937; color: #ffffff; padding: 6px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: left;">Documento</th>
+                                        <th style="background-color: #1f2937; color: #ffffff; padding: 6px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: left;">Fecha</th>
+                                        <th style="background-color: #1f2937; color: #ffffff; padding: 6px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: left;">Vence</th>
+                                        <th style="background-color: #1f2937; color: #ffffff; padding: 6px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">D&#237;as</th>
+                                        <th style="background-color: #1f2937; color: #ffffff; padding: 6px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">Monto original</th>
+                                        <th style="background-color: #1f2937; color: #ffffff; padding: 6px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">Saldo</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr t-foreach="cur['invoices']" t-as="inv">
-                                        <td t-esc="inv['number']"/>
-                                        <td>
+                                    <tr t-foreach="cur['invoices']" t-as="inv"
+                                        t-att-style="'background-color: %s;' % ('#ffffff' if inv_index %% 2 == 0 else '#f9fafb')">
+                                        <td style="padding: 5px 8px; border-bottom: 1px solid #e5e7eb;" t-esc="inv['number']"/>
+                                        <td style="padding: 5px 8px; border-bottom: 1px solid #e5e7eb; white-space: nowrap;">
                                             <span t-esc="inv['invoice_date']" t-options='{"widget": "date"}'/>
                                         </td>
-                                        <td>
+                                        <td style="padding: 5px 8px; border-bottom: 1px solid #e5e7eb; white-space: nowrap;">
                                             <span t-if="inv['invoice_date_due']" t-esc="inv['invoice_date_due']" t-options='{"widget": "date"}'/>
                                         </td>
-                                        <td class="text-end">
-                                            <span t-att-class="'text-danger fw-bold' if inv['days_overdue'] &gt; 0 else ''"
-                                                  t-esc="inv['days_overdue']"/>
-                                        </td>
-                                        <td class="text-end" t-esc="inv['original_formatted']"/>
-                                        <td class="text-end" t-esc="inv['residual_formatted']"/>
+                                        <td t-att-style="'padding: 5px 8px; border-bottom: 1px solid #e5e7eb; text-align: right; white-space: nowrap;' + (' color: #dc2626; font-weight: 700;' if inv['days_overdue'] &gt; 0 else '')"
+                                            t-esc="inv['days_overdue']"/>
+                                        <td style="padding: 5px 8px; border-bottom: 1px solid #e5e7eb; text-align: right; white-space: nowrap;" t-esc="inv['original_formatted']"/>
+                                        <td style="padding: 5px 8px; border-bottom: 1px solid #e5e7eb; text-align: right; white-space: nowrap;" t-esc="inv['residual_formatted']"/>
                                     </tr>
-                                    <tr class="o_statement_subtotal">
-                                        <td colspan="4" class="text-end"><strong>Subtotal facturas</strong></td>
-                                        <td class="text-end"><strong t-esc="cur['subtotal_original_formatted']"/></td>
-                                        <td class="text-end"><strong t-esc="cur['subtotal_balance_formatted']"/></td>
+                                    <tr>
+                                        <td colspan="4" style="padding: 7px 8px; background-color: #1f2937; color: #ffffff; font-weight: 700; text-align: right; text-transform: uppercase; letter-spacing: 0.04em; font-size: 10.5px;">Subtotal</td>
+                                        <td style="padding: 7px 8px; background-color: #1f2937; color: #ffffff; font-weight: 700; text-align: right; white-space: nowrap;" t-esc="cur['subtotal_original_formatted']"/>
+                                        <td style="padding: 7px 8px; background-color: #1f2937; color: #ffffff; font-weight: 700; text-align: right; white-space: nowrap;" t-esc="cur['subtotal_balance_formatted']"/>
                                     </tr>
                                 </tbody>
                             </table>
                         </t>
 
                         <t t-if="cur['pending_payments']">
-                            <h5 class="o_statement_pending_title">Pagos pendientes de aplicar</h5>
-                            <table class="table table-sm o_statement_table">
+                            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #6b7280; margin-top: 10px; margin-bottom: 4px;">
+                                Pagos pendientes de aplicar
+                            </div>
+                            <table class="o_statement_table" style="width: 100%; border-collapse: collapse; margin-bottom: 4px;">
                                 <thead>
                                     <tr>
-                                        <th>Pago</th>
-                                        <th>Fecha</th>
-                                        <th class="text-end">Monto</th>
-                                        <th class="text-end">Disponible</th>
+                                        <th style="background-color: #6b7280; color: #ffffff; padding: 5px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: left;">Pago</th>
+                                        <th style="background-color: #6b7280; color: #ffffff; padding: 5px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: left;">Fecha</th>
+                                        <th style="background-color: #6b7280; color: #ffffff; padding: 5px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">Monto</th>
+                                        <th style="background-color: #6b7280; color: #ffffff; padding: 5px 8px; font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">Disponible</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr t-foreach="cur['pending_payments']" t-as="pay">
-                                        <td t-esc="pay['number']"/>
-                                        <td>
+                                    <tr t-foreach="cur['pending_payments']" t-as="pay"
+                                        t-att-style="'background-color: %s;' % ('#ffffff' if pay_index %% 2 == 0 else '#f9fafb')">
+                                        <td style="padding: 5px 8px; border-bottom: 1px solid #e5e7eb;" t-esc="pay['number']"/>
+                                        <td style="padding: 5px 8px; border-bottom: 1px solid #e5e7eb; white-space: nowrap;">
                                             <span t-esc="pay['payment_date']" t-options='{"widget": "date"}'/>
                                         </td>
-                                        <td class="text-end" t-esc="pay['original_formatted']"/>
-                                        <td class="text-end" t-esc="pay['residual_formatted']"/>
+                                        <td style="padding: 5px 8px; border-bottom: 1px solid #e5e7eb; text-align: right; white-space: nowrap;" t-esc="pay['original_formatted']"/>
+                                        <td style="padding: 5px 8px; border-bottom: 1px solid #e5e7eb; text-align: right; white-space: nowrap;" t-esc="pay['residual_formatted']"/>
                                     </tr>
-                                    <tr class="o_statement_subtotal">
-                                        <td colspan="3" class="text-end"><strong>Subtotal pagos</strong></td>
-                                        <td class="text-end"><strong t-esc="cur['pending_balance_formatted']"/></td>
+                                    <tr>
+                                        <td colspan="3" style="padding: 7px 8px; background-color: #6b7280; color: #ffffff; font-weight: 700; text-align: right; text-transform: uppercase; letter-spacing: 0.04em; font-size: 10.5px;">Subtotal pagos</td>
+                                        <td style="padding: 7px 8px; background-color: #6b7280; color: #ffffff; font-weight: 700; text-align: right; white-space: nowrap;" t-esc="cur['pending_balance_formatted']"/>
                                     </tr>
                                 </tbody>
                             </table>
                         </t>
 
                         <t t-if="cur.get('aging')">
-                            <div class="o_statement_aging mt-2">
-                                <table class="table table-sm o_statement_aging_table">
+                            <div style="margin-top: 10px; text-align: right;">
+                                <table style="display: inline-table; border-collapse: collapse; border: 1px solid #d1d5db; border-radius: 3px;">
                                     <thead>
                                         <tr>
-                                            <th class="text-end">Al d&#237;a</th>
-                                            <th class="text-end">1 - 30</th>
-                                            <th class="text-end">31 - 60</th>
-                                            <th class="text-end">61 - 90</th>
-                                            <th class="text-end">+90</th>
-                                            <th class="text-end">Saldo facturas</th>
+                                            <th style="background-color: #eef2f7; color: #1f2937; padding: 4px 12px; font-size: 9.5px; letter-spacing: 0.03em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">Al d&#237;a</th>
+                                            <th style="background-color: #eef2f7; color: #1f2937; padding: 4px 12px; font-size: 9.5px; letter-spacing: 0.03em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">1 - 30</th>
+                                            <th style="background-color: #eef2f7; color: #1f2937; padding: 4px 12px; font-size: 9.5px; letter-spacing: 0.03em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">31 - 60</th>
+                                            <th style="background-color: #eef2f7; color: #1f2937; padding: 4px 12px; font-size: 9.5px; letter-spacing: 0.03em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">61 - 90</th>
+                                            <th style="background-color: #eef2f7; color: #1f2937; padding: 4px 12px; font-size: 9.5px; letter-spacing: 0.03em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">+90</th>
+                                            <th style="background-color: #1f2937; color: #ffffff; padding: 4px 12px; font-size: 9.5px; letter-spacing: 0.03em; text-transform: uppercase; font-weight: 700; text-align: right; white-space: nowrap;">Saldo</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td class="text-end" t-esc="cur['aging_formatted']['current']"/>
-                                            <td class="text-end" t-esc="cur['aging_formatted']['b1_30']"/>
-                                            <td class="text-end" t-esc="cur['aging_formatted']['b31_60']"/>
-                                            <td class="text-end" t-esc="cur['aging_formatted']['b61_90']"/>
-                                            <td class="text-end" t-esc="cur['aging_formatted']['b90_plus']"/>
-                                            <td class="text-end"><strong t-esc="cur['subtotal_balance_formatted']"/></td>
+                                            <td style="padding: 5px 12px; text-align: right; white-space: nowrap; border-top: 1px solid #e5e7eb;" t-esc="cur['aging_formatted']['current']"/>
+                                            <td style="padding: 5px 12px; text-align: right; white-space: nowrap; border-top: 1px solid #e5e7eb;" t-esc="cur['aging_formatted']['b1_30']"/>
+                                            <td style="padding: 5px 12px; text-align: right; white-space: nowrap; border-top: 1px solid #e5e7eb;" t-esc="cur['aging_formatted']['b31_60']"/>
+                                            <td style="padding: 5px 12px; text-align: right; white-space: nowrap; border-top: 1px solid #e5e7eb;" t-esc="cur['aging_formatted']['b61_90']"/>
+                                            <td style="padding: 5px 12px; text-align: right; white-space: nowrap; border-top: 1px solid #e5e7eb;" t-esc="cur['aging_formatted']['b90_plus']"/>
+                                            <td style="padding: 5px 12px; text-align: right; white-space: nowrap; border-top: 1px solid #e5e7eb; background-color: #f3f4f6; font-weight: 700;" t-esc="cur['subtotal_balance_formatted']"/>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </t>
 
-                        <div class="o_statement_net mt-2 text-end">
-                            <span class="text-muted" t-out="'Saldo neto en %s:' % cur['currency_name']"/>
-                            <strong class="ms-2" t-esc="cur['net_balance_formatted']"/>
+                        <div style="clear: both; text-align: right; font-size: 12px; border-top: 1px solid #d1d5db; padding-top: 8px; margin-top: 10px;">
+                            <span style="color: #6b7280;" t-out="'Saldo neto en %s:' % cur['currency_name']"/>
+                            <strong style="margin-left: 8px; color: #1f2937;" t-esc="cur['net_balance_formatted']"/>
                         </div>
                     </div>
                 </t>

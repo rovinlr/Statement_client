@@ -70,6 +70,12 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
 
         partner_ids = [int(pid) for pid in context_partner_ids if pid]
         if not partner_ids:
+            # Do not touch the filter during PDF/XLSX exports: account_reports
+            # re-runs the initializer with the same options the user saw in
+            # the view, and the export RPC strips our partner context, so
+            # wiping here would drop the filter and print every partner.
+            if context.get("print_mode") or options.get("print_mode"):
+                return
             # Opened from the menu (no partner scope). account_reports persists
             # previous_options per user, so a partner filter set from an earlier
             # partner-scoped open would leak into the menu view. Reset it.
