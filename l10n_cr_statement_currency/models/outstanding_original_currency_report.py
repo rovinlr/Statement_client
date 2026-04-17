@@ -70,6 +70,10 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
 
         partner_ids = [int(pid) for pid in context_partner_ids if pid]
         if not partner_ids:
+            # Opened from the menu (no partner scope). account_reports persists
+            # previous_options per user, so a partner filter set from an earlier
+            # partner-scoped open would leak into the menu view. Reset it.
+            self._reset_partner_filter(options)
             return
 
         partners = self.env["res.partner"].browse(partner_ids)
@@ -77,6 +81,13 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
         # Keep the partner filter for querying, but avoid exposing internal IDs in the PDF header.
         options["selected_partner_ids"] = []
         options["partner"] = [{"id": partner.id, "name": partner.display_name, "selected": True} for partner in partners]
+
+    def _reset_partner_filter(self, options):
+        options["partner_ids"] = []
+        options["selected_partner_ids"] = []
+        for entry in options.get("partner") or []:
+            if isinstance(entry, dict):
+                entry["selected"] = False
 
     def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
         grouped_results = self._get_grouped_moves(options)
