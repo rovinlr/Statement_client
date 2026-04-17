@@ -3,6 +3,7 @@ import json
 
 from odoo import _, fields, models
 from odoo.tools import float_is_zero
+from odoo.tools.misc import formatLang
 
 
 class ResPartner(models.Model):
@@ -127,6 +128,18 @@ class ResPartner(models.Model):
     # ------------------------------------------------------------------
     _AGING_BUCKETS = ("current", "b1_30", "b31_60", "b61_90", "b90_plus")
 
+    def _statement_format_amount(self, amount, currency):
+        """Format a monetary value stripping the NBSP that formatLang emits.
+
+        Some wkhtmltopdf builds (including Cloudpepper's) treat the generated
+        HTML as Latin-1 even when UTF-8 is declared, which turns the non
+        breaking space between the currency symbol and the amount into the
+        literal glyph "Â". Use a regular ASCII space instead so the output
+        is safe across rendering stacks.
+        """
+        formatted = formatLang(self.env, amount or 0.0, currency_obj=currency)
+        return formatted.replace("\u00a0", " ") if isinstance(formatted, str) else formatted
+
     def _prepare_statement_data(self, cutoff_date=None):
         """Return the dict consumed by the QWeb statement template."""
         self.ensure_one()
@@ -163,6 +176,8 @@ class ResPartner(models.Model):
                     "days_overdue": days_overdue,
                     "original_amount": original_amount,
                     "residual_amount": residual_amount,
+                    "original_formatted": self._statement_format_amount(original_amount, currency),
+                    "residual_formatted": self._statement_format_amount(residual_amount, currency),
                 }
             )
             entry["subtotal_original"] += original_amount
@@ -184,6 +199,8 @@ class ResPartner(models.Model):
                     "payment_date": line.date,
                     "original_amount": payment_amount,
                     "residual_amount": residual_amount,
+                    "original_formatted": self._statement_format_amount(payment_amount, currency),
+                    "residual_formatted": self._statement_format_amount(residual_amount, currency),
                 }
             )
             entry["pending_balance"] += residual_amount
@@ -191,16 +208,28 @@ class ResPartner(models.Model):
         summary = []
         by_currency_list = []
         for entry in sorted(by_currency.values(), key=lambda e: e["currency_name"] or ""):
+            currency = entry["currency"]
             net_balance = entry["subtotal_balance"] - entry["pending_balance"]
             entry["net_balance"] = net_balance
+            entry["subtotal_original_formatted"] = self._statement_format_amount(entry["subtotal_original"], currency)
+            entry["subtotal_balance_formatted"] = self._statement_format_amount(entry["subtotal_balance"], currency)
+            entry["pending_balance_formatted"] = self._statement_format_amount(entry["pending_balance"], currency)
+            entry["net_balance_formatted"] = self._statement_format_amount(net_balance, currency)
+            entry["aging_formatted"] = {
+                bucket: self._statement_format_amount(entry["aging"][bucket], currency)
+                for bucket in self._AGING_BUCKETS
+            }
             by_currency_list.append(entry)
             summary.append(
                 {
-                    "currency": entry["currency"],
+                    "currency": currency,
                     "currency_name": entry["currency_name"],
                     "invoices_balance": entry["subtotal_balance"],
                     "pending_balance": entry["pending_balance"],
                     "net_balance": net_balance,
+                    "invoices_balance_formatted": entry["subtotal_balance_formatted"],
+                    "pending_balance_formatted": entry["pending_balance_formatted"],
+                    "net_balance_formatted": entry["net_balance_formatted"],
                 }
             )
 

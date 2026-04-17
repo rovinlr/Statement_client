@@ -1,57 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!--
+        Custom layout that mimics web.external_layout's structure (header /
+        article / footer divs) so Odoo's PDF pipeline splits the document
+        into three UTF-8 streams for wkhtmltopdf. This keeps the encoding
+        intact while letting us render our own header instead of the
+        company letterhead.
+    -->
+    <template id="statement_layout">
+        <t t-call="web.html_container">
+            <t t-set="company" t-value="company or env.company"/>
+
+            <div class="header o_statement_running_header">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <img t-if="company.logo"
+                             t-att-src="image_data_uri(company.logo)"
+                             alt="Logo"
+                             style="max-height: 60px; max-width: 220px; object-fit: contain;"/>
+                    </div>
+                    <div class="col-8 text-end small">
+                        <div t-field="company.name" style="font-size: 14px; font-weight: 700;"/>
+                        <div>
+                            <span t-if="company.street" t-field="company.street"/>
+                            <span t-if="company.street2">, <span t-field="company.street2"/></span>
+                        </div>
+                        <div>
+                            <span t-if="company.city" t-field="company.city"/>
+                            <span t-if="company.state_id">, <span t-field="company.state_id.name"/></span>
+                            <span t-if="company.zip"> <span t-field="company.zip"/></span>
+                            <span t-if="company.country_id"> - <span t-field="company.country_id.name"/></span>
+                        </div>
+                        <div>
+                            <span t-if="company.vat">Ced.: <span t-field="company.vat"/></span>
+                            <span t-if="company.vat and company.phone"> | </span>
+                            <span t-if="company.phone" t-field="company.phone"/>
+                        </div>
+                        <div t-if="company.email" t-field="company.email"/>
+                    </div>
+                </div>
+                <hr style="border-top: 2px solid #1f2937; margin-top: 6px; margin-bottom: 0;"/>
+            </div>
+
+            <div class="article">
+                <t t-out="0"/>
+            </div>
+
+            <div class="footer text-center small" style="color: #6b7280;">
+                P&#225;gina <span class="page"/> / <span class="topage"/>
+            </div>
+        </t>
+    </template>
+
     <template id="statement_document">
         <t t-set="company" t-value="data.get('company') or env.company"/>
         <t t-set="currencies" t-value="data.get('by_currency') or []"/>
         <t t-set="summary" t-value="data.get('currency_summary') or []"/>
         <t t-set="cutoff_date" t-value="data.get('cutoff_date')"/>
 
-        <div class="page o_statement_pdf">
-
-            <div class="o_statement_custom_header">
-                <div class="row align-items-center">
-                    <div class="col-4">
-                        <img t-if="company.logo"
-                             t-att-src="image_data_uri(company.logo)"
-                             alt="Logo"
-                             class="o_statement_logo"
-                             style="max-height: 70px; max-width: 240px; object-fit: contain;"/>
-                    </div>
-                    <div class="col-8 text-end">
-                        <div class="o_statement_company_name" t-field="company.name"/>
-                        <div class="small">
-                            <span t-if="company.street" t-field="company.street"/>
-                            <span t-if="company.street2">, <span t-field="company.street2"/></span>
-                        </div>
-                        <div class="small">
-                            <span t-if="company.city" t-field="company.city"/>
-                            <span t-if="company.state_id">, <span t-field="company.state_id.name"/></span>
-                            <span t-if="company.zip"> <span t-field="company.zip"/></span>
-                            <span t-if="company.country_id"> - <span t-field="company.country_id.name"/></span>
-                        </div>
-                        <div class="small">
-                            <span t-if="company.vat">Ced.: <span t-field="company.vat"/></span>
-                            <span t-if="company.vat and company.phone"> | </span>
-                            <span t-if="company.phone" t-field="company.phone"/>
-                        </div>
-                        <div t-if="company.email" class="small" t-field="company.email"/>
-                    </div>
-                </div>
-                <hr class="o_statement_header_rule"/>
-            </div>
+        <t t-call="l10n_cr_statement_currency.statement_layout">
+            <div class="page o_statement_pdf">
 
                 <div class="o_statement_title mb-3 text-center">
                     <h2 class="mb-0">ESTADO DE CUENTA</h2>
                     <div class="text-muted small">
                         Fecha de corte:
                         <strong><span t-esc="cutoff_date" t-options='{"widget": "date"}'/></strong>
-                    </div>
-                    <div t-if="data.get('date_from')" class="text-muted small">
-                        Periodo:
-                        <span t-esc="data['date_from']" t-options='{"widget": "date"}'/>
-                        a
-                        <span t-esc="data['date_to']" t-options='{"widget": "date"}'/>
                     </div>
                 </div>
 
@@ -75,10 +90,10 @@
                                 <span t-field="partner.vat"/>
                             </div>
                             <div t-if="partner.email">
-                                <i class="fa fa-envelope"/> <span t-field="partner.email"/>
+                                <span t-field="partner.email"/>
                             </div>
                             <div t-if="partner.phone">
-                                <i class="fa fa-phone"/> <span t-field="partner.phone"/>
+                                <span t-field="partner.phone"/>
                             </div>
                         </div>
                     </div>
@@ -95,19 +110,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr t-foreach="summary" t-as="row" t-att-class="row.get('row_class')">
-                                <td>
-                                    <strong t-esc="row['currency_name']"/>
-                                </td>
-                                <td class="text-end">
-                                    <span t-esc="row['invoices_balance']" t-options='{"widget": "monetary", "display_currency": row["currency"]}'/>
-                                </td>
-                                <td class="text-end">
-                                    <span t-esc="row['pending_balance']" t-options='{"widget": "monetary", "display_currency": row["currency"]}'/>
-                                </td>
-                                <td class="text-end">
-                                    <strong t-esc="row['net_balance']" t-options='{"widget": "monetary", "display_currency": row["currency"]}'/>
-                                </td>
+                            <tr t-foreach="summary" t-as="row">
+                                <td><strong t-esc="row['currency_name']"/></td>
+                                <td class="text-end" t-esc="row['invoices_balance_formatted']"/>
+                                <td class="text-end" t-esc="row['pending_balance_formatted']"/>
+                                <td class="text-end"><strong t-esc="row['net_balance_formatted']"/></td>
                             </tr>
                         </tbody>
                     </table>
@@ -132,7 +139,7 @@
                                         <th>Documento</th>
                                         <th>Fecha</th>
                                         <th>Vence</th>
-                                        <th class="text-end">Días</th>
+                                        <th class="text-end">D&#237;as</th>
                                         <th class="text-end">Monto original</th>
                                         <th class="text-end">Saldo</th>
                                     </tr>
@@ -150,21 +157,13 @@
                                             <span t-att-class="'text-danger fw-bold' if inv['days_overdue'] &gt; 0 else ''"
                                                   t-esc="inv['days_overdue']"/>
                                         </td>
-                                        <td class="text-end">
-                                            <span t-esc="inv['original_amount']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                        </td>
-                                        <td class="text-end">
-                                            <span t-esc="inv['residual_amount']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                        </td>
+                                        <td class="text-end" t-esc="inv['original_formatted']"/>
+                                        <td class="text-end" t-esc="inv['residual_formatted']"/>
                                     </tr>
                                     <tr class="o_statement_subtotal">
                                         <td colspan="4" class="text-end"><strong>Subtotal facturas</strong></td>
-                                        <td class="text-end">
-                                            <strong t-esc="cur['subtotal_original']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                        </td>
-                                        <td class="text-end">
-                                            <strong t-esc="cur['subtotal_balance']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                        </td>
+                                        <td class="text-end"><strong t-esc="cur['subtotal_original_formatted']"/></td>
+                                        <td class="text-end"><strong t-esc="cur['subtotal_balance_formatted']"/></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -187,18 +186,12 @@
                                         <td>
                                             <span t-esc="pay['payment_date']" t-options='{"widget": "date"}'/>
                                         </td>
-                                        <td class="text-end">
-                                            <span t-esc="pay['original_amount']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                        </td>
-                                        <td class="text-end">
-                                            <span t-esc="pay['residual_amount']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                        </td>
+                                        <td class="text-end" t-esc="pay['original_formatted']"/>
+                                        <td class="text-end" t-esc="pay['residual_formatted']"/>
                                     </tr>
                                     <tr class="o_statement_subtotal">
                                         <td colspan="3" class="text-end"><strong>Subtotal pagos</strong></td>
-                                        <td class="text-end">
-                                            <strong t-esc="cur['pending_balance']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                        </td>
+                                        <td class="text-end"><strong t-esc="cur['pending_balance_formatted']"/></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -209,7 +202,7 @@
                                 <table class="table table-sm o_statement_aging_table">
                                     <thead>
                                         <tr>
-                                            <th class="text-end">Al día</th>
+                                            <th class="text-end">Al d&#237;a</th>
                                             <th class="text-end">1 - 30</th>
                                             <th class="text-end">31 - 60</th>
                                             <th class="text-end">61 - 90</th>
@@ -219,24 +212,12 @@
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td class="text-end">
-                                                <span t-esc="cur['aging']['current']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                            </td>
-                                            <td class="text-end">
-                                                <span t-esc="cur['aging']['b1_30']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                            </td>
-                                            <td class="text-end">
-                                                <span t-esc="cur['aging']['b31_60']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                            </td>
-                                            <td class="text-end">
-                                                <span t-esc="cur['aging']['b61_90']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                            </td>
-                                            <td class="text-end">
-                                                <span t-esc="cur['aging']['b90_plus']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                            </td>
-                                            <td class="text-end">
-                                                <strong t-esc="cur['subtotal_balance']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
-                                            </td>
+                                            <td class="text-end" t-esc="cur['aging_formatted']['current']"/>
+                                            <td class="text-end" t-esc="cur['aging_formatted']['b1_30']"/>
+                                            <td class="text-end" t-esc="cur['aging_formatted']['b31_60']"/>
+                                            <td class="text-end" t-esc="cur['aging_formatted']['b61_90']"/>
+                                            <td class="text-end" t-esc="cur['aging_formatted']['b90_plus']"/>
+                                            <td class="text-end"><strong t-esc="cur['subtotal_balance_formatted']"/></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -245,7 +226,7 @@
 
                         <div class="o_statement_net mt-2 text-end">
                             <span class="text-muted" t-out="'Saldo neto en %s:' % cur['currency_name']"/>
-                            <strong class="ms-2" t-esc="cur['net_balance']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
+                            <strong class="ms-2" t-esc="cur['net_balance_formatted']"/>
                         </div>
                     </div>
                 </t>
@@ -255,20 +236,21 @@
                         <strong class="small text-uppercase">Datos para pago</strong>
                         <ul class="list-unstyled small mb-0">
                             <li t-foreach="company.partner_id.bank_ids" t-as="bank">
-                                <span t-field="bank.bank_id.name"/> —
+                                <span t-field="bank.bank_id.name"/> &#8212;
                                 <span t-field="bank.acc_number"/>
                                 <span t-if="bank.acc_holder_name"> (<span t-field="bank.acc_holder_name"/>)</span>
                             </li>
                         </ul>
                     </div>
                     <p class="small text-muted mb-0">
-                        Si ya realizó el pago, por favor omita este aviso. Para cualquier consulta escríbanos a
+                        Si ya realiz&#243; el pago, por favor omita este aviso. Para cualquier consulta escr&#237;banos a
                         <span t-if="company.email" t-field="company.email"/>
-                        <span t-if="company.phone"> o comuníquese al <span t-field="company.phone"/></span>.
+                        <span t-if="company.phone"> o comun&#237;quese al <span t-field="company.phone"/></span>.
                     </p>
                 </div>
 
             </div>
+        </t>
     </template>
 
     <template id="statement_report_main">
