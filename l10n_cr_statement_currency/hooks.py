@@ -7,7 +7,6 @@ PARTNER_REPORTS_CANDIDATE_XMLIDS = (
     "account_reports.menu_finance_partner_reports",
     "account_reports.account_reports_partners_menu",
     "account_followup.customer_statements_menu",
-    "account_followup.account_followup_menu",
 )
 
 PARTNER_REPORTS_CANDIDATE_NAMES = (
@@ -20,14 +19,32 @@ PARTNER_REPORTS_CANDIDATE_NAMES = (
 )
 
 
+def _is_under_reports(menu, reports_parent):
+    """Return True if menu is a descendant of the main Reports menu."""
+    if not reports_parent:
+        return True
+    current = menu
+    while current:
+        if current.id == reports_parent.id:
+            return True
+        current = current.parent_id
+    return False
+
+
 def _find_partner_reports_menu(env):
-    """Locate the "Partner Reports" sub-menu across Odoo editions/languages."""
+    """Locate the "Partner Reports" sub-menu across Odoo editions/languages.
+
+    Only accept a candidate that lives under the main Accounting > Reports
+    menu, so we never move the statement entry to unrelated sections such
+    as Configuration or Follow-up levels.
+    """
+    reports_parent = env.ref("account.menu_finance_reports", raise_if_not_found=False)
+
     for xmlid in PARTNER_REPORTS_CANDIDATE_XMLIDS:
         menu = env.ref(xmlid, raise_if_not_found=False)
-        if menu and menu._name == "ir.ui.menu":
+        if menu and menu._name == "ir.ui.menu" and _is_under_reports(menu, reports_parent):
             return menu
 
-    reports_parent = env.ref("account.menu_finance_reports", raise_if_not_found=False)
     if not reports_parent:
         return env["ir.ui.menu"]
 
