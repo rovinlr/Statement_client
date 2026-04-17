@@ -7,12 +7,35 @@
         <t t-set="summary" t-value="data.get('currency_summary') or []"/>
         <t t-set="cutoff_date" t-value="data.get('cutoff_date')"/>
 
-        <t t-call="web.external_layout">
-            <div class="page o_statement_pdf">
+        <div class="page o_statement_pdf">
 
-                <div class="o_statement_title mb-2">
-                    <h2 class="mb-0">Estado de Cuenta</h2>
-                    <div class="text-muted">
+            <div class="o_statement_custom_header">
+                <div class="row align-items-center">
+                    <div class="col-4">
+                        <img t-if="company.logo"
+                             t-att-src="image_data_uri(company.logo)"
+                             alt="Logo"
+                             class="o_statement_logo"/>
+                    </div>
+                    <div class="col-8 text-end">
+                        <div class="o_statement_company_name" t-field="company.name"/>
+                        <div t-if="company.partner_id.contact_address" class="small">
+                            <span t-field="company.partner_id.contact_address" style="white-space: pre-line;"/>
+                        </div>
+                        <div class="small">
+                            <span t-if="company.vat">Céd.: <span t-field="company.vat"/></span>
+                            <span t-if="company.vat and company.phone"> | </span>
+                            <span t-if="company.phone" t-field="company.phone"/>
+                        </div>
+                        <div t-if="company.email" class="small" t-field="company.email"/>
+                    </div>
+                </div>
+                <hr class="o_statement_header_rule"/>
+            </div>
+
+                <div class="o_statement_title mb-3 text-center">
+                    <h2 class="mb-0">ESTADO DE CUENTA</h2>
+                    <div class="text-muted small">
                         Fecha de corte:
                         <strong><span t-esc="cutoff_date" t-options='{"widget": "date"}'/></strong>
                     </div>
@@ -233,7 +256,6 @@
                 </div>
 
             </div>
-        </t>
     </template>
 
     <template id="statement_report_main">
