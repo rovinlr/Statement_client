@@ -10,37 +10,39 @@
         <t t-call="web.external_layout">
             <div class="page o_statement_pdf">
 
-                <div class="o_statement_header mb-3">
-                    <div class="row align-items-start">
+                <div class="o_statement_title mb-2">
+                    <h2 class="mb-0">Estado de Cuenta</h2>
+                    <div class="text-muted">
+                        Fecha de corte:
+                        <strong><span t-esc="cutoff_date" t-options='{"widget": "date"}'/></strong>
+                    </div>
+                    <div t-if="data.get('date_from')" class="text-muted small">
+                        Periodo:
+                        <span t-esc="data['date_from']" t-options='{"widget": "date"}'/>
+                        a
+                        <span t-esc="data['date_to']" t-options='{"widget": "date"}'/>
+                    </div>
+                </div>
+
+                <div class="o_statement_partner_box mb-3">
+                    <div class="small text-uppercase text-muted">Cliente</div>
+                    <div class="row">
                         <div class="col-7">
-                            <h2 class="mb-0">Estado de Cuenta</h2>
-                            <div class="text-muted">
-                                Fecha de corte:
-                                <strong><span t-esc="cutoff_date" t-options='{"widget": "date"}'/></strong>
-                            </div>
-                            <div t-if="data.get('date_from')" class="text-muted small">
-                                Periodo:
-                                <span t-esc="data['date_from']" t-options='{"widget": "date"}'/>
-                                a
-                                <span t-esc="data['date_to']" t-options='{"widget": "date"}'/>
+                            <div><strong t-field="partner.name"/></div>
+                            <div t-if="partner.contact_address" class="small">
+                                <span t-field="partner.contact_address" style="white-space: pre-line;"/>
                             </div>
                         </div>
-                        <div class="col-5 text-end">
-                            <div class="o_statement_partner_box">
-                                <div class="small text-uppercase text-muted">Cliente</div>
-                                <div><strong t-field="partner.name"/></div>
-                                <div t-if="partner.vat" class="small">
-                                    Ced./ID: <span t-field="partner.vat"/>
-                                </div>
-                                <div t-if="partner.contact_address" class="small">
-                                    <span t-field="partner.contact_address" style="white-space: pre-line;"/>
-                                </div>
-                                <div t-if="partner.email" class="small">
-                                    <i class="fa fa-envelope"/> <span t-field="partner.email"/>
-                                </div>
-                                <div t-if="partner.phone" class="small">
-                                    <i class="fa fa-phone"/> <span t-field="partner.phone"/>
-                                </div>
+                        <div class="col-5 small">
+                            <div t-if="partner.vat">
+                                <span class="text-muted">Ced./ID:</span>
+                                <span t-field="partner.vat"/>
+                            </div>
+                            <div t-if="partner.email">
+                                <i class="fa fa-envelope"/> <span t-field="partner.email"/>
+                            </div>
+                            <div t-if="partner.phone">
+                                <i class="fa fa-phone"/> <span t-field="partner.phone"/>
                             </div>
                         </div>
                     </div>
@@ -206,7 +208,7 @@
                         </t>
 
                         <div class="o_statement_net mt-2 text-end">
-                            <span class="text-muted">Saldo neto en <span t-esc="cur['currency_name']"/>:</span>
+                            <span class="text-muted" t-out="'Saldo neto en %s:' % cur['currency_name']"/>
                             <strong class="ms-2" t-esc="cur['net_balance']" t-options='{"widget": "monetary", "display_currency": cur["currency"]}'/>
                         </div>
                     </div>
