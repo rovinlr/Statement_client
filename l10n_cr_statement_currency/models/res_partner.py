@@ -143,7 +143,11 @@ class ResPartner(models.Model):
     def _prepare_statement_data(self, cutoff_date=None):
         """Return the dict consumed by the QWeb statement template."""
         self.ensure_one()
-        cutoff_date = cutoff_date or fields.Date.context_today(self)
+        cutoff_date = (
+            cutoff_date
+            or self.env.context.get("statement_cutoff_date")
+            or fields.Date.context_today(self)
+        )
         company = self.env.company
 
         invoices = self.env["account.move"].search(
