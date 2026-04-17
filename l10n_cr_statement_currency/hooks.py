@@ -3,6 +3,7 @@ import logging
 _logger = logging.getLogger(__name__)
 
 PARTNER_REPORTS_CANDIDATE_XMLIDS = (
+    "account.account_reports_partners_reports_menu",
     "account_reports.menu_partner_reports",
     "account_reports.menu_finance_partner_reports",
     "account_reports.account_reports_partners_menu",
