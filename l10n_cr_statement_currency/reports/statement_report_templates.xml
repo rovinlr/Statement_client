@@ -2,11 +2,11 @@
 <odoo>
 
     <!--
-        Custom layout that mimics web.external_layout's structure (header /
-        article / footer divs) so Odoo's PDF pipeline splits the document
-        into three UTF-8 streams for wkhtmltopdf. This keeps the encoding
-        intact while letting us render our own header instead of the
-        company letterhead.
+        Minimal layout: everything flows inside the body. We skip the
+        running header/footer divs to avoid wkhtmltopdf extraction quirks
+        (visible hairlines, vertical misalignment between logo and company
+        block). Each partner owns the full company block at the top of
+        its page, so multi-partner exports still look right.
     -->
     <template id="statement_layout">
         <t t-call="web.html_container">
@@ -86,41 +86,8 @@
                 }
             </style>
 
-            <div class="header o_statement_running_header" style="padding-bottom: 4px; overflow: hidden;">
-                <div style="float: left; width: 35%;">
-                    <img t-if="company.logo"
-                         t-att-src="image_data_uri(company.logo)"
-                         alt="Logo"
-                         style="max-height: 55px; max-width: 200px; object-fit: contain;"/>
-                </div>
-                <div style="float: right; width: 60%; text-align: right; font-size: 10px; line-height: 1.3; color: #374151;">
-                    <div style="font-size: 13px; font-weight: 700; color: #111827;" t-field="company.name"/>
-                    <div>
-                        <span t-if="company.street" t-field="company.street"/>
-                        <span t-if="company.street2">, <span t-field="company.street2"/></span>
-                    </div>
-                    <div>
-                        <span t-if="company.city" t-field="company.city"/>
-                        <span t-if="company.state_id">, <span t-field="company.state_id.name"/></span>
-                        <span t-if="company.country_id"> - <span t-field="company.country_id.name"/></span>
-                    </div>
-                    <div>
-                        <span t-if="company.vat">Ced.: <span t-field="company.vat"/></span>
-                        <span t-if="company.vat and company.phone"> | </span>
-                        <span t-if="company.phone" t-field="company.phone"/>
-                        <span t-if="(company.vat or company.phone) and company.email"> | </span>
-                        <span t-if="company.email" t-field="company.email"/>
-                    </div>
-                </div>
-            </div>
-
             <div class="article">
-                <hr style="border: 0; border-top: 2px solid #1f2937; margin: 0 0 14px 0;"/>
                 <t t-out="0"/>
-            </div>
-
-            <div class="footer text-center small" style="color: #6b7280;">
-                P&#225;gina <span class="page"/> / <span class="topage"/>
             </div>
         </t>
     </template>
@@ -133,6 +100,36 @@
 
         <t t-call="l10n_cr_statement_currency.statement_layout">
             <div class="page o_statement_pdf">
+
+                <div style="display: table; width: 100%; margin-bottom: 8px;">
+                    <div style="display: table-cell; vertical-align: middle; width: 35%;">
+                        <img t-if="company.logo"
+                             t-att-src="image_data_uri(company.logo)"
+                             alt="Logo"
+                             style="max-height: 55px; max-width: 200px; object-fit: contain;"/>
+                    </div>
+                    <div style="display: table-cell; vertical-align: middle; width: 65%; text-align: right; font-size: 10px; line-height: 1.3; color: #374151;">
+                        <div style="font-size: 13px; font-weight: 700; color: #111827;" t-field="company.name"/>
+                        <div>
+                            <span t-if="company.street" t-field="company.street"/>
+                            <span t-if="company.street2">, <span t-field="company.street2"/></span>
+                        </div>
+                        <div>
+                            <span t-if="company.city" t-field="company.city"/>
+                            <span t-if="company.state_id">, <span t-field="company.state_id.name"/></span>
+                            <span t-if="company.country_id"> - <span t-field="company.country_id.name"/></span>
+                        </div>
+                        <div>
+                            <span t-if="company.vat">Ced.: <span t-field="company.vat"/></span>
+                            <span t-if="company.vat and company.phone"> | </span>
+                            <span t-if="company.phone" t-field="company.phone"/>
+                            <span t-if="(company.vat or company.phone) and company.email"> | </span>
+                            <span t-if="company.email" t-field="company.email"/>
+                        </div>
+                    </div>
+                </div>
+
+                <hr style="border: 0; border-top: 2px solid #1f2937; margin: 0 0 10px 0;"/>
 
                 <div class="o_statement_title mb-3 text-center">
                     <h2 class="mb-0">ESTADO DE CUENTA</h2>
