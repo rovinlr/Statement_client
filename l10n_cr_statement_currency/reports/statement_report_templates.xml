@@ -203,13 +203,8 @@
                 <t t-foreach="currencies" t-as="cur">
                     <div class="o_statement_currency_block"
                          style="page-break-inside: avoid; border: 1px solid #d1d5db; border-radius: 4px; padding: 12px 14px; margin-top: 14px; background-color: #ffffff;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1f2937; padding-bottom: 4px; margin-bottom: 8px;">
-                            <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #1f2937;">
-                                Movimientos en <span t-esc="cur['currency_name']"/>
-                            </div>
-                            <div style="font-size: 11px; color: #6b7280;">
-                                <span t-esc="cur['currency_name']"/>
-                            </div>
+                        <div style="border-bottom: 2px solid #1f2937; padding-bottom: 4px; margin-bottom: 8px; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #1f2937;">
+                            Movimientos en <span t-esc="cur['currency_name']"/>
                         </div>
 
                         <t t-if="cur['invoices']">
