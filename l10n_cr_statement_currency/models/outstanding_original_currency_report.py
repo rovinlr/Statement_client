@@ -85,9 +85,11 @@ class OutstandingOriginalCurrencyReportHandler(models.AbstractModel):
     def _reset_partner_filter(self, options):
         options["partner_ids"] = []
         options["selected_partner_ids"] = []
-        for entry in options.get("partner") or []:
-            if isinstance(entry, dict):
-                entry["selected"] = False
+        partner_option = options.get("partner")
+        if isinstance(partner_option, list):
+            for entry in partner_option:
+                if isinstance(entry, dict):
+                    entry["selected"] = False
 
     def _dynamic_lines_generator(self, report, options, all_column_groups_expression_totals, warnings=None):
         grouped_results = self._get_grouped_moves(options)
